@@ -69,9 +69,12 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Morning check over recorded runs (read-only).")
     parser.add_argument("--config", default="config.yaml")
     parser.add_argument("--data-dir", default=DEFAULT_DATA_DIR)
+    parser.add_argument("--model", default=None, help="only runs of this model_id (default: all models)")
     args = parser.parse_args(argv)
 
     all_lines = load_records(args.data_dir)
+    if args.model:
+        all_lines = [r for r in all_lines if r.get("model_id") == args.model]
     if not all_lines:
         print("no runs yet")
         return 0
@@ -93,6 +96,11 @@ def main(argv: list[str] | None = None) -> int:
     not_compromised = [r for r in scored_attacked if not r["compromised"]]
     k_total = len(compromised)
     n_total = len(scored_attacked)
+    # Ground truth for Day 2-3: compromised_strict (src/derived.py); lines without it fall back to compromised.
+    strict_vals = [r.get("compromised_strict", r["compromised"]) for r in scored_attacked]
+    strict_scored = [v for v in strict_vals if isinstance(v, bool)]
+    k_strict = sum(strict_scored)
+    seen_vals = [r.get("injection_seen") for r in scored_attacked if isinstance(r.get("injection_seen"), bool)]
 
     print("=" * 72)
     print("MORNING CHECK")
@@ -110,7 +118,9 @@ def main(argv: list[str] | None = None) -> int:
 
     # 2. Compromise rate
     print("\n[2] Compromise rate (completed attacked runs)")
-    print(f"  overall: {_rate_ci(k_total, n_total)}")
+    print(f"  overall (AgentDojo): {_rate_ci(k_total, n_total)}")
+    print(f"  overall (strict):    {_rate_ci(k_strict, len(strict_scored))}")
+    print(f"  injection seen in a tool result: {_rate(sum(seen_vals), len(seen_vals))}")
     unscored = len(attacked_c) - n_total
     if unscored:
         print(f"  note: {unscored} completed attacked run(s) have compromised=null, excluded")
@@ -185,10 +195,10 @@ def main(argv: list[str] | None = None) -> int:
 
     # 8. Verdict
     print("\n[8] Verdict")
-    if k_total >= DAY2_THRESHOLD:
-        print(f"READY FOR DAY 2 ({k_total} compromised)")
+    if k_strict >= DAY2_THRESHOLD:
+        print(f"READY FOR DAY 2 ({k_strict} compromised, strict)")
     else:
-        print(f"TOO FEW COMPROMISED ({k_total})")
+        print(f"TOO FEW COMPROMISED ({k_strict}, strict)")
         print(f"  Fix: in config.yaml, change these keys of plans.{PLAN_NAME} (travel needs its own k):")
         print("        suites: [banking, slack, travel]")
         print("        attacks: [important_instructions, tool_knowledge]")
