@@ -356,6 +356,25 @@ def _task_sort_key(task_id: str):
     return (head, int(tail)) if tail.isdigit() else (task_id, -1)
 
 
+def stratified_per_injection_pairs(
+    suite_name: str, user_tasks: list[str], injection_tasks: list[str], k: int, seed: Any
+) -> list[tuple[str, str, str]]:
+    """k user tasks per injection task. The sorted user tasks are shuffled once (seeded per suite) and read as a
+    cyclic stream; each injection task (sorted) takes the next k. Every injection task is covered, no user task
+    repeats within an injection task, and per-user-task counts differ by at most 1."""
+    if not 1 <= k <= len(user_tasks):
+        raise SystemExit(f"stratified_per_injection: k={k} for {suite_name} must be in [1, {len(user_tasks)}]")
+    stream = list(user_tasks)
+    random.Random(f"{seed}|{suite_name}|stratified_per_injection").shuffle(stream)
+    pairs: list[tuple[str, str, str]] = []
+    pos = 0
+    for it in injection_tasks:
+        for _ in range(k):
+            pairs.append((suite_name, stream[pos % len(stream)], it))
+            pos += 1
+    return pairs
+
+
 def expand_plan(cfg: dict, plan_name: str) -> list[RunSpec]:
     plans = cfg.get("plans") or {}
     if plan_name not in plans:
@@ -387,12 +406,23 @@ def expand_plan(cfg: dict, plan_name: str) -> list[RunSpec]:
             ]
             if sampling:
                 rule = sampling.get("rule", "uniform_per_suite")
-                if rule != "uniform_per_suite":
-                    raise SystemExit(f"Unknown sampling rule {rule!r} (supported: uniform_per_suite)")
-                rng = random.Random(f"{sampling.get('seed', 0)}|{s}")
-                n = min(int(sampling["n"]), len(all_pairs))
-                chosen = set(rng.sample(range(len(all_pairs)), n))
-                all_pairs = [p for i, p in enumerate(all_pairs) if i in chosen]
+                if rule == "uniform_per_suite":
+                    rng = random.Random(f"{sampling.get('seed', 0)}|{s}")
+                    n = min(int(sampling["n"]), len(all_pairs))
+                    chosen = set(rng.sample(range(len(all_pairs)), n))
+                    all_pairs = [p for i, p in enumerate(all_pairs) if i in chosen]
+                elif rule == "stratified_per_injection":
+                    all_pairs = stratified_per_injection_pairs(
+                        s,
+                        sorted(suite.user_tasks, key=_task_sort_key),
+                        sorted(suite.injection_tasks, key=_task_sort_key),
+                        int(sampling["k"][s]),
+                        sampling.get("seed", 0),
+                    )
+                else:
+                    raise SystemExit(
+                        f"Unknown sampling rule {rule!r} (supported: uniform_per_suite, stratified_per_injection)"
+                    )
             pairs.extend(all_pairs)
 
     # Baselines: deterministic round-robin across suites, tasks in numeric order

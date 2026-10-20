@@ -48,4 +48,4 @@ plans:
     repeats: 2
     baseline_count: 10
     # baseline_repeats defaults to `repeats`
-    sampling: null  # OFF for now; Phase 4 decides. Example: {rule: uniform_per_suite, n: 40, seed: 0}
+    sampling: {rule: stratified_per_injection, k: {banking: 4, slack: 5}, seed: 0}

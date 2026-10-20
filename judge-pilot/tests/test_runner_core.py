@@ -164,3 +164,27 @@ def test_rerun_ids_override_completed(tmp_path):
     (tmp_path / "x.jsonl").write_text(json.dumps(_record(ok.run_id(MODEL))) + "\n")
     assert pending_specs([ok], MODEL, tmp_path) == []
     assert pending_specs([ok], MODEL, tmp_path, rerun_ids={ok.run_id(MODEL)}) == [ok]
+
+
+def test_stratified_per_injection_sampling():
+    from collections import Counter
+
+    from src.runner import stratified_per_injection_pairs
+
+    uts = [f"user_task_{i}" for i in range(16)]
+    its = [f"injection_task_{i}" for i in range(9)]
+    pairs = stratified_per_injection_pairs("banking", uts, its, 4, 0)
+    assert len(pairs) == 4 * len(its)
+    assert {it for _, _, it in pairs} == set(its)
+    for it in its:
+        per_it = [ut for _, ut, i in pairs if i == it]
+        assert len(per_it) == 4 and len(set(per_it)) == 4  # no replacement within an injection task
+    counts = Counter(ut for _, ut, _ in pairs)
+    full = [counts.get(ut, 0) for ut in uts]
+    assert max(full) - min(full) <= 1
+    assert pairs == stratified_per_injection_pairs("banking", uts, its, 4, 0)  # deterministic
+    assert pairs != stratified_per_injection_pairs("banking", uts, its, 4, 1)
+    import pytest
+
+    with pytest.raises(SystemExit):
+        stratified_per_injection_pairs("banking", uts, its, 17, 0)
