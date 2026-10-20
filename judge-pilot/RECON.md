@@ -137,3 +137,17 @@ Smallest path:
 2. Enum model via CLI: `python -m agentdojo.scripts.benchmark --model gemini-2.0-flash-001 -s banking -ut user_task_0 --attack important_instructions --logdir ./runs` (drop `--attack` for the baseline).
 3. Any other model via Python: `llm = GoogleLLM("<model-id>", genai.Client()); llm.name = "<model-id>"`; `MODEL_NAMES["<model-id>"] = "AI model developed by Google"`; `pipeline = AgentPipeline.from_config(PipelineConfig(llm=llm, model_id=None, defense=None, system_message_name=None, system_message=None))`.
 4. Then `with OutputLogger("./runs"): benchmark_suite_with_injections(pipeline, get_suite("v1.2.2","banking"), load_attack("important_instructions", suite, pipeline), Path("./runs"), False, user_tasks=[...], benchmark_version="v1.2.2")` (or `benchmark_suite_without_injections` for the baseline).
+
+## h. Environment state before/after (added Day 1, Phase 2 prep)
+
+- `TaskSuite.run_task_with_pipeline` (`AD/task_suite/task_suite.py:339`) builds the env via
+  `load_and_inject_default_environment(injections)` (:366), applies `user_task.init_environment` (:369),
+  snapshots `pre_environment = task_environment.model_copy(deep=True)` (:374), runs
+  `agent_pipeline.query(...)` (:386), then scores utility (:400) and security (:412) against
+  pre vs post env.
+- State is a pydantic model, so `model_dump(mode="json")` serializes it and pre/post can be diffed.
+- **Not exposed:** the method returns only `(utility, security)`. Pre/post env and the message list
+  are local variables. Messages reach disk only through `TraceLogger`.
+- **Consequence:** to log state_pre/post/diff, transcript and per-call tokens, the runner reimplements
+  this ~40-line method (same calls, same order) and keeps the locals. `GoogleLLM` does not record
+  `usage_metadata`, so tokens need a thin wrapper around the genai client.
