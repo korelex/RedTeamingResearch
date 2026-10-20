@@ -1,0 +1,6 @@
+versions:
+  agentdojo: "0.1.35"
+  google-genai: "2.31.0"
+vertex:
+  location: us-central1
+  flash_model: gemini-2.5-flash
