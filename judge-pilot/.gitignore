@@ -2,3 +2,6 @@
 .venv/
 runs/
 __pycache__/
+data/
+logs/
+.pytest_cache/

@@ -1,6 +1,51 @@
 versions:
   agentdojo: "0.1.35"
   google-genai: "2.31.0"
+
+benchmark_version: v1.2
+
 vertex:
   location: us-central1
   flash_model: gemini-2.5-flash
+  # Sent on every generate_content call (GoogleLLM default is also 0.0). The runner logs the value
+  # read back from the GenerateContentConfig that was actually sent.
+  temperature: 0.0
+  # Injected into GenerateContentConfig.seed by the runner's client wrapper (GoogleLLM does not set one).
+  seed: 1234
+  # Per-request HTTP timeout (GenerateContentConfig.http_options.timeout). Timeouts are retried.
+  request_timeout_s: 180
+
+# Prices in USD per million tokens. Thinking tokens are counted as output.
+pricing:
+  gemini-2.5-flash:  # UNCONFIRMED: user to verify on Vertex pricing page
+    input_per_mtok: 0.30
+    output_per_mtok: 2.50
+
+spend_cap_usd: 2.0  # placeholder for smoke; raise deliberately before night1
+concurrency: 4
+
+# Transient Vertex errors (5xx, 429, 408, timeouts, connection errors): exponential backoff with jitter.
+retry:
+  max_tries: 5
+  base_delay_s: 2.0
+  max_delay_s: 60.0
+
+plans:
+  smoke:
+    suites: [banking, slack]
+    attacks: [important_instructions]
+    repeats: 1
+    baseline_count: 1  # round-robin over suites -> banking user_task_0
+    pairs:
+      - {suite: banking, user_task: user_task_0, injection_task: injection_task_0}
+      - {suite: banking, user_task: user_task_2, injection_task: injection_task_1}
+      - {suite: banking, user_task: user_task_4, injection_task: injection_task_3}
+      - {suite: slack, user_task: user_task_1, injection_task: injection_task_1}
+      - {suite: slack, user_task: user_task_4, injection_task: injection_task_2}
+  night1:
+    suites: [banking, slack]
+    attacks: [important_instructions]
+    repeats: 2
+    baseline_count: 10
+    # baseline_repeats defaults to `repeats`
+    sampling: null  # OFF for now; Phase 4 decides. Example: {rule: uniform_per_suite, n: 40, seed: 0}
