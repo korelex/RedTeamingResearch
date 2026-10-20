@@ -7,6 +7,7 @@ benchmark_version: v1.2
 vertex:
   location: us-central1
   flash_model: gemini-2.5-flash
+  pro_model: gemini-2.5-pro  # second agent model for the Flash vs Pro comparison
   # Sent on every generate_content call (GoogleLLM default is also 0.0). The runner logs the value
   # read back from the GenerateContentConfig that was actually sent.
   temperature: 0.0
@@ -20,8 +21,11 @@ pricing:
   gemini-2.5-flash:  # UNCONFIRMED: user to verify on Vertex pricing page
     input_per_mtok: 0.30
     output_per_mtok: 2.50
+  gemini-2.5-pro:  # UNCONFIRMED: prompts <= 200k tokens tier; user to verify on Vertex pricing page
+    input_per_mtok: 1.25
+    output_per_mtok: 10.00
 
-spend_cap_usd: 2.0  # placeholder for smoke; raise deliberately before night1
+spend_cap_usd: 6.0  # user-confirmed 2026-10-20 (Checkpoint 4); cumulative over all data/runs, Flash + Pro
 concurrency: 4
 
 # Transient Vertex errors (5xx, 429, 408, timeouts, connection errors): exponential backoff with jitter.
@@ -31,7 +35,8 @@ retry:
   max_delay_s: 60.0
 
 plans:
-  smoke:
+  # Plans run gemini-2.5-flash (vertex.flash_model) unless they set `model: <key under vertex:>`.
+  smoke: &smoke
     suites: [banking, slack]
     attacks: [important_instructions]
     repeats: 1
@@ -42,10 +47,17 @@ plans:
       - {suite: banking, user_task: user_task_4, injection_task: injection_task_3}
       - {suite: slack, user_task: user_task_1, injection_task: injection_task_1}
       - {suite: slack, user_task: user_task_4, injection_task: injection_task_2}
-  night1:
+  night1: &night1  # user-confirmed 2026-10-20 (Checkpoint 4): 142 runs
     suites: [banking, slack]
     attacks: [important_instructions]
     repeats: 2
     baseline_count: 10
     # baseline_repeats defaults to `repeats`
     sampling: {rule: stratified_per_injection, k: {banking: 4, slack: 5}, seed: 0}
+  # Same runs as smoke / night1 on gemini-2.5-pro (run_id includes model_id, so lines never collide).
+  smoke_pro:
+    <<: *smoke
+    model: pro_model
+  night1_pro:
+    <<: *night1
+    model: pro_model

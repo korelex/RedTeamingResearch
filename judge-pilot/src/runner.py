@@ -45,7 +45,8 @@ from agentdojo.task_suite.task_suite import (  # noqa: E402
     model_output_from_messages,
 )
 
-from src.cost import CostTracker, get_prices  # noqa: E402
+from src.cost import CostTracker, estimate_cost, get_prices  # noqa: E402
+from src.derived import add_derived  # noqa: E402
 from src.logger import (  # noqa: E402
     RunLogger,
     completed_run_ids,
@@ -453,12 +454,12 @@ def expand_plan(cfg: dict, plan_name: str) -> list[RunSpec]:
 # --------------------------------------------------------------------------------------------
 # Single run
 # --------------------------------------------------------------------------------------------
-_ATTACK_CACHE: dict[tuple[str, str], Any] = {}
+_ATTACK_CACHE: dict[tuple[str, str, str], Any] = {}
 _ATTACK_LOCK = threading.Lock()
 
 
 def get_attack(cfg: dict, model_id: str, suite_name: str, attack_name: str):
-    key = (suite_name, attack_name)
+    key = (model_id, suite_name, attack_name)
     with _ATTACK_LOCK:
         if key not in _ATTACK_CACHE:
             suite = get_suite(cfg["benchmark_version"], suite_name)
@@ -493,12 +494,14 @@ def execute_run(spec: RunSpec, cfg: dict, model_id: str, costs: CostTracker) -> 
         "repeat": spec.repeat,
         "is_baseline": spec.is_baseline,
         "compromised": None,
+        "compromised_strict": None,
         "utility": None,
         "user_task_prompt": None,
         "injection_task_goal": None,
         "transcript": [],
         "tool_calls": [],
         "injection_text": None,
+        "injection_seen": None,
         "state_available": False,
         "state_snapshot_omitted": False,
         "state_pre": None,
@@ -560,6 +563,7 @@ def execute_run(spec: RunSpec, cfg: dict, model_id: str, costs: CostTracker) -> 
         rec["malformed"] = acc.malformed
         if rec["error"] is None and acc.malformed:
             rec["error"] = malformed_error(acc)
+        add_derived(rec)
         rec["est_cost_usd"] = round(costs.cost_of(acc.tokens_in, acc.tokens_out), 8)
         rec["duration_s"] = round(time.monotonic() - t0, 3)
     return rec
@@ -585,7 +589,7 @@ def pending_specs(
     return [s for s in specs if s.run_id(model_id) not in done_ids]
 
 
-def dry_run(specs: list[RunSpec], todo: list[RunSpec], model_id: str) -> None:
+def dry_run(specs: list[RunSpec], todo: list[RunSpec], model_id: str, prices: tuple[float, float]) -> None:
     counts: dict[tuple[str, str], int] = {}
     for s in specs:
         k = (s.suite, s.attack or "baseline")
@@ -601,11 +605,16 @@ def dry_run(specs: list[RunSpec], todo: list[RunSpec], model_id: str) -> None:
     if not with_tokens:
         print("estimated cost: no token data yet")
         return
-    avg_in = sum(r["tokens_in"] for r in with_tokens) / len(with_tokens)
-    avg_out = sum(r["tokens_out"] for r in with_tokens) / len(with_tokens)
-    avg_cost = sum(r["est_cost_usd"] for r in with_tokens) / len(with_tokens)
+    # Prefer token averages from this model's own runs; fall back to all models' runs (tokens only, priced
+    # at this model's rates). Thinking-heavy models can use far more output tokens, so treat that as a floor.
+    own = [r for r in with_tokens if r.get("model_id") == model_id]
+    basis = own or with_tokens
+    avg_in = sum(r["tokens_in"] for r in basis) / len(basis)
+    avg_out = sum(r["tokens_out"] for r in basis) / len(basis)
+    avg_cost = estimate_cost(avg_in, avg_out, *prices)
+    source = f"{len(basis)} logged {model_id} runs" if own else f"{len(basis)} logged runs of other models (floor)"
     print(f"estimated cost: ${avg_cost * len(todo):.4f} for {len(todo)} runs "
-          f"(avg over {len(with_tokens)} logged runs: {avg_in:.0f} in / {avg_out:.0f} out tokens, ${avg_cost:.5f}/run)")
+          f"(avg over {source}: {avg_in:.0f} in / {avg_out:.0f} out tokens, ${avg_cost:.5f}/run)")
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -621,15 +630,19 @@ def main(argv: list[str] | None = None) -> int:
     cfg = load_cfg(args.config)
     plan = cfg["plans"].get(args.plan) or {}
     cfg = {**cfg, **(plan.get("overrides") or {})}
-    model_id = cfg["vertex"]["flash_model"]
-    get_prices(cfg, model_id)  # fail fast if pricing is missing
+    # A plan picks its agent model by naming a key under `vertex:` (default: flash_model).
+    model_key = plan.get("model", "flash_model")
+    if model_key not in cfg["vertex"]:
+        raise SystemExit(f"plan {args.plan!r}: model key {model_key!r} not found under vertex: in config")
+    model_id = cfg["vertex"][model_key]
+    prices = get_prices(cfg, model_id)  # fail fast if pricing is missing
 
     specs = expand_plan(cfg, args.plan)
     remaining = pending_specs(specs, model_id, RUNS_DIR, rerun_ids=set(args.rerun_ids))
     todo = remaining if args.limit is None else remaining[: args.limit]
 
     if args.dry_run:
-        dry_run(specs, todo, model_id)
+        dry_run(specs, todo, model_id, prices)
         return 0
 
     costs = CostTracker(cfg, model_id, RUNS_DIR)
