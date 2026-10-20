@@ -23,20 +23,24 @@ The times are when each batch's runs started.
 | 1 | smoke | gemini-2.5-flash | 04:52 → 04:57 | 19 Oct 21:52 → 21:57 | 12 | 12 / 0 | 2 / 10 | 6 | 37,546 | 10,822 | **$0.0383** |
 | 2 | night1 (+ resume) | gemini-2.5-flash | 13:04 → 13:27 | 20 Oct 06:04 → 06:27 | 141 | 139 / 2 | 19 / 120 | 83 | 459,545 | 191,599 | **$0.6169** |
 | 3 | smoke_pro | gemini-2.5-pro | 13:27 → 13:28 | 20 Oct 06:27 → 06:28 | 6 | 6 / 0 | 1 / 5 | 3 | 16,773 | 13,521 | **$0.1562** |
-| | **Total** | | | | **159** | | | | **513,864** | **215,942** | **$0.8114** |
+| 4 | night1_pro (+ resume) | gemini-2.5-pro | 13:44 → 14:08 | 20 Oct 06:44 → 07:08 | 140 | 139 / 1 | 19 / 120 | 62 | 437,566 | 316,268 | **$3.7096** |
+| | **Total** | | | | **299** | | | | **951,430** | **532,210** | **$4.5210** |
 
 **Notes on each batch**
 - **Smoke:** the 12 lines are the original 6 runs plus a later backfill re-run of each. Both attempts were billed.
 - **Night 1:** the plan has 142 runs. 3 were already done during the smoke test, so 139 ran, and 141 lines were logged. The 2 errors were a `MalformedResponse` (`fbe03f07…`) and a Vertex `504 DEADLINE_EXCEEDED` after 926 s (`41f4001b…`). Their attempts cost $0.0035, and both succeeded when retried by the resume command.
 - **Smoke Pro:** 6 runs (5 attacked + 1 baseline), the same runs as the Flash smoke test.
+- **Night 1 Pro:** the same 142-run sample as Night 1 Flash; 3 were already done by smoke_pro, so 139 ran. The one
+  error was a `MalformedResponse` (`9c6cf39f…`, $0.0294), which succeeded on resume. It took 23 minutes (the
+  dry run estimated $3.62).
 
 ### Per model (to compare with Billing grouped by SKU)
 
 | Model | Tokens in | Tokens out | Est. input cost | Est. output cost | **Est. total** | Actual (Billing) | Difference |
 |---|---|---|---|---|---|---|---|
 | gemini-2.5-flash | 497,091 | 202,421 | $0.1491 | $0.5061 | **$0.6552** | | |
-| gemini-2.5-pro | 16,773 | 13,521 | $0.0210 | $0.1352 | **$0.1562** | | |
-| **Total** | 513,864 | 215,942 | | | **$0.8114** | | |
+| gemini-2.5-pro | 454,339 | 329,789 | $0.5679 | $3.2979 | **$3.8658** | | |
+| **Total** | 951,430 | 532,210 | | | **$4.5210** | | |
 
 **Calls that are not logged here.** Billing will also include `src/vertex_check.py` connection checks and the
 Day 1 part 1 `run_baseline.py` runs. These were a handful of short Flash calls, well under $0.01.
@@ -58,8 +62,25 @@ Billing also counts the hung `504` request as Vertex measures it, which may diff
 
 | Date | Cumulative est. spend | spend_cap_usd | Credits left (Billing → Credits) |
 |---|---|---|---|
-| 2026-10-20 | $0.8114 | $6.00 | |
+| 2026-10-20 | $4.5210 | $6.00 | |
 
 ## Change log
 
 - 2026-10-20: log created. Prices are still unconfirmed.
+- 2026-10-20: added the night1_pro batch.
+
+## Quality vs cost (Night 1, same 125 attacked + 20 baseline runs per model)
+
+| | Flash | Pro |
+|---|---|---|
+| Est. cost per run | $0.0045 | $0.0267 (5.9×) |
+| Cost per judge-ready run (injection reached the agent) | $0.0074 | $0.0372 (5.0×) |
+| Attack success (strict) | 70% [61–77%] | 52% [43–61%] |
+| Compromised when the injection was seen | 98% | 62.5% |
+| Injection reached the agent | 71% | 83% |
+| Baseline / attacked utility | 50% / 58% | 70% / 59% |
+| Repeat agreement | 90% | 79% |
+| Avg duration per run | 23 s | 38 s |
+
+Paired over the 125 attacked runs: both compromised in 58, only Flash in 29, only Pro in 7, neither in 31
+(exact McNemar p = 0.0003). Source: `python -m src.compare_models --config config.yaml`.
