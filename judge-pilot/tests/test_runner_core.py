@@ -97,3 +97,70 @@ def test_extract_tool_calls_pairs_results():
         {"order": 0, "name": "f", "args": {"x": 1}, "result": "r1"},
         {"order": 1, "name": "g", "args": {}, "result": "boom"},
     ]
+
+
+def _fake_response(finish_reason, text=None, prompt=10, out=2):
+    from types import SimpleNamespace as NS
+
+    parts = [NS(text=text, function_call=None)] if text else None
+    content = NS(parts=parts) if parts else None
+    return NS(
+        candidates=[NS(finish_reason=finish_reason, content=content)],
+        usage_metadata=NS(prompt_token_count=prompt, candidates_token_count=out, thoughts_token_count=1),
+    )
+
+
+class _FakeModels:
+    def __init__(self, responses):
+        self.responses = list(responses)
+        self.calls = 0
+
+    def generate_content(self, *, model, contents, config):
+        self.calls += 1
+        return self.responses.pop(0)
+
+
+def _wrapper(responses):
+    from src.runner import UsageAccumulator, _InstrumentedModels
+
+    acc = UsageAccumulator()
+    fake = _FakeModels(responses)
+    models = _InstrumentedModels(fake, acc, seed=7, timeout_ms=None, retry={})
+    models.malformed_sleep_s = 0.0
+    return models, fake, acc
+
+
+def test_malformed_response_becomes_error_after_two_retries():
+    from src.runner import malformed_error
+
+    models, fake, acc = _wrapper([_fake_response("MALFORMED_RESPONSE")] * 3)
+    resp = models.generate_content(model="m", contents=[], config=None)
+    assert fake.calls == 3  # 1 call + 2 in-wrapper retries
+    assert response_is(resp, "MALFORMED_RESPONSE")
+    assert acc.finish_reasons == ["MALFORMED_RESPONSE"] * 3
+    assert acc.malformed is True
+    assert acc.tokens_in == 30 and acc.tokens_out == 9  # every billed attempt is counted
+    assert acc.seeds == [7]
+    err = malformed_error(acc)
+    assert err["type"] == "MalformedResponse" and "MALFORMED_RESPONSE" in err["message"]
+
+
+def test_malformed_then_ok_is_not_error():
+    from src.runner import malformed_error
+
+    models, fake, acc = _wrapper([_fake_response("SAFETY"), _fake_response("STOP", text="hi")])
+    models.generate_content(model="m", contents=[], config=None)
+    assert fake.calls == 2
+    assert acc.finish_reasons == ["SAFETY", "STOP"]
+    assert acc.malformed is False and malformed_error(acc) is None
+
+
+def response_is(resp, reason):
+    return resp.candidates[0].finish_reason == reason
+
+
+def test_rerun_ids_override_completed(tmp_path):
+    ok = RunSpec("banking", "user_task_0", "injection_task_0", "important_instructions", 0)
+    (tmp_path / "x.jsonl").write_text(json.dumps(_record(ok.run_id(MODEL))) + "\n")
+    assert pending_specs([ok], MODEL, tmp_path) == []
+    assert pending_specs([ok], MODEL, tmp_path, rerun_ids={ok.run_id(MODEL)}) == [ok]

@@ -87,7 +87,21 @@ class UsageAccumulator:
         self.calls = 0
         self.temperatures: list[Any] = []
         self.seeds: list[Any] = []
+        self.finish_reasons: list[str | None] = []  # one entry per API call that returned a response
+        self.malformed_returned: list[str | None] = []  # finish reasons of malformed responses handed to the agent
         self._lock = threading.Lock()
+
+    def record_finish(self, reason: str | None) -> None:
+        with self._lock:
+            self.finish_reasons.append(reason)
+
+    def record_malformed_returned(self, reason: str | None) -> None:
+        with self._lock:
+            self.malformed_returned.append(reason)
+
+    @property
+    def malformed(self) -> bool:
+        return len(self.malformed_returned) > 0
 
     def record_config(self, cfg: genai_types.GenerateContentConfig | None) -> None:
         with self._lock:
@@ -111,6 +125,46 @@ class UsageAccumulator:
         return values[0]
 
 
+# Finish reasons that count as a normal completion. Anything else with an empty candidate (SAFETY, RECITATION,
+# OTHER, ...) is malformed, and MALFORMED_RESPONSE / MALFORMED_FUNCTION_CALL are malformed regardless of content.
+NORMAL_FINISH_REASONS = {"STOP", "MAX_TOKENS"}
+ALWAYS_MALFORMED = {"MALFORMED_RESPONSE", "MALFORMED_FUNCTION_CALL"}
+MALFORMED_MAX_RETRIES = 2
+
+
+def response_finish_reason(response: Any) -> str | None:
+    cands = getattr(response, "candidates", None) or []
+    if not cands:
+        return None
+    fr = getattr(cands[0], "finish_reason", None)
+    if fr is None:
+        return None
+    return str(getattr(fr, "value", fr))
+
+
+def is_malformed_response(response: Any) -> bool:
+    cands = getattr(response, "candidates", None) or []
+    if not cands:
+        return True
+    reason = response_finish_reason(response)
+    if reason in ALWAYS_MALFORMED:
+        return True
+    content = getattr(cands[0], "content", None)
+    empty = content is None or not (getattr(content, "parts", None) or [])
+    return empty and reason not in NORMAL_FINISH_REASONS
+
+
+def malformed_error(acc: "UsageAccumulator") -> dict | None:
+    if not acc.malformed:
+        return None
+    return {
+        "type": "MalformedResponse",
+        "message": f"malformed responses returned to agent: {acc.malformed_returned}; "
+                   f"all finish_reasons: {acc.finish_reasons}",
+        "traceback": None,
+    }
+
+
 def is_transient(exc: BaseException) -> bool:
     if isinstance(exc, genai_errors.ServerError):
         return True
@@ -131,6 +185,8 @@ class _InstrumentedModels:
         self._base = float(retry.get("base_delay_s", 2.0))
         self._cap = float(retry.get("max_delay_s", 60.0))
         self.retries = 0
+        self.malformed_retries = MALFORMED_MAX_RETRIES
+        self.malformed_sleep_s = 1.0
 
     def generate_content(self, *, model: str, contents: Any, config: genai_types.GenerateContentConfig | None = None):
         update: dict[str, Any] = {}
@@ -146,9 +202,23 @@ class _InstrumentedModels:
         if update:
             config = config.model_copy(update=update)
         self._acc.record_config(config)
+        for malformed_attempt in range(self.malformed_retries + 1):
+            response = self._call_with_retries(model, contents, config)
+            self._acc.add(getattr(response, "usage_metadata", None))
+            self._acc.record_finish(response_finish_reason(response))
+            if not is_malformed_response(response):
+                return response
+            if malformed_attempt < self.malformed_retries:
+                time.sleep(self.malformed_sleep_s * random.uniform(0.5, 1.5))
+        # Still malformed after retries: hand it to the agent (AgentDojo turns it into an empty message) and
+        # flag the run so it is logged as an error.
+        self._acc.record_malformed_returned(response_finish_reason(response))
+        return response
+
+    def _call_with_retries(self, model: str, contents: Any, config: genai_types.GenerateContentConfig):
         for attempt in range(1, self._max_tries + 1):
             try:
-                response = self._models.generate_content(model=model, contents=contents, config=config)
+                return self._models.generate_content(model=model, contents=contents, config=config)
             except Exception as e:  # noqa: BLE001
                 if attempt < self._max_tries and is_transient(e):
                     self.retries += 1
@@ -156,8 +226,6 @@ class _InstrumentedModels:
                     time.sleep(delay)
                     continue
                 raise
-            self._acc.add(getattr(response, "usage_metadata", None))
-            return response
         raise RuntimeError("unreachable")
 
     def __getattr__(self, name: str) -> Any:
@@ -408,6 +476,8 @@ def execute_run(spec: RunSpec, cfg: dict, model_id: str, costs: CostTracker) -> 
         "state_diff": None,
         "tokens_in": 0,
         "tokens_out": 0,
+        "finish_reasons": [],
+        "malformed": False,
         "est_cost_usd": 0.0,
         "duration_s": None,
         "error": None,
@@ -428,6 +498,8 @@ def execute_run(spec: RunSpec, cfg: dict, model_id: str, costs: CostTracker) -> 
         utility, security = run_task_capture(suite, pipeline, user_task, injection_task, injections, capture)
         rec["utility"] = bool(utility)
         rec["compromised"] = None if spec.is_baseline else bool(security)
+        # Scores are kept for reference, but a malformed model response makes the run an error (retried on resume).
+        rec["error"] = malformed_error(acc)
     except Exception as e:  # noqa: BLE001
         tb = traceback.format_exception(type(e), e, e.__traceback__)
         rec["error"] = {
@@ -441,7 +513,7 @@ def execute_run(spec: RunSpec, cfg: dict, model_id: str, costs: CostTracker) -> 
             rec["transcript"] = to_jsonable(list(msgs))
             rec["tool_calls"] = extract_tool_calls(rec["transcript"])
         pre = capture.get("pre_environment")
-        post = capture.get("task_environment") if rec["error"] is None else None
+        post = capture.get("task_environment") if (rec["error"] is None or rec["error"]["type"] == "MalformedResponse") else None
         pre_json = pre.model_dump(mode="json") if pre is not None else None
         post_json = post.model_dump(mode="json") if post is not None else None
         if pre_json is not None and post_json is not None:
@@ -454,6 +526,10 @@ def execute_run(spec: RunSpec, cfg: dict, model_id: str, costs: CostTracker) -> 
         rec["seed"] = acc.sent_value(acc.seeds)
         rec["tokens_in"] = acc.tokens_in
         rec["tokens_out"] = acc.tokens_out
+        rec["finish_reasons"] = list(acc.finish_reasons)
+        rec["malformed"] = acc.malformed
+        if rec["error"] is None and acc.malformed:
+            rec["error"] = malformed_error(acc)
         rec["est_cost_usd"] = round(costs.cost_of(acc.tokens_in, acc.tokens_out), 8)
         rec["duration_s"] = round(time.monotonic() - t0, 3)
     return rec
@@ -470,9 +546,12 @@ def load_cfg(path: str) -> dict:
         return yaml.safe_load(f)
 
 
-def pending_specs(specs: list[RunSpec], model_id: str, runs_dir: Path) -> list[RunSpec]:
-    """Resume filter: drop specs whose run_id already has an error==null line; errored ones are kept (retried)."""
-    done_ids = completed_run_ids(runs_dir)
+def pending_specs(
+    specs: list[RunSpec], model_id: str, runs_dir: Path, rerun_ids: set[str] | None = None
+) -> list[RunSpec]:
+    """Resume filter: drop specs whose run_id already has an error==null line; errored ones are kept (retried).
+    run_ids in `rerun_ids` are always kept."""
+    done_ids = completed_run_ids(runs_dir) - (rerun_ids or set())
     return [s for s in specs if s.run_id(model_id) not in done_ids]
 
 
@@ -505,6 +584,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--plan", required=True)
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--limit", type=int, default=None, help="run at most N of the remaining runs")
+    ap.add_argument("--rerun-ids", nargs="+", default=[], metavar="RUN_ID",
+                    help="treat these run_ids as not completed (existing lines are ignored for resume)")
     args = ap.parse_args(argv)
 
     cfg = load_cfg(args.config)
@@ -514,7 +595,7 @@ def main(argv: list[str] | None = None) -> int:
     get_prices(cfg, model_id)  # fail fast if pricing is missing
 
     specs = expand_plan(cfg, args.plan)
-    remaining = pending_specs(specs, model_id, RUNS_DIR)
+    remaining = pending_specs(specs, model_id, RUNS_DIR, rerun_ids=set(args.rerun_ids))
     todo = remaining if args.limit is None else remaining[: args.limit]
 
     if args.dry_run:
@@ -553,7 +634,7 @@ def main(argv: list[str] | None = None) -> int:
         n_done += 1
         if rec["error"] is not None:
             n_err += 1
-        if rec["compromised"] is True:
+        elif rec["compromised"] is True:
             n_comp += 1
         err = f" ERROR {rec['error']['type']}: {rec['error']['message'][:120]}" if rec["error"] else ""
         print(f"[{n_done}/{len(todo)}] {rec['run_id']} {rec['suite']}/{rec['user_task_id']}/"

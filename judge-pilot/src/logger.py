@@ -45,6 +45,8 @@ RUN_FIELDS = [
     "state_diff",
     "tokens_in",
     "tokens_out",
+    "finish_reasons",
+    "malformed",
     "est_cost_usd",
     "duration_s",
     "error",
