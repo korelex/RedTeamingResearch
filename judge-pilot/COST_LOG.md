@@ -205,3 +205,45 @@ The exchange rate implied by the SKU prices is **₹96 = $1**.
 - **The bill has no partner-model (Claude, Llama and so on) SKUs.** The "Agent Platform Model Garden" product in the earlier
   screenshot contains newer Gemini models, not partner models. The 20 `StreamRawPredict` calls cost nothing.
 - **Running total:** ₹2,520.58 ≈ $26.26 of the ≈ $290 credits used in October; the pilot accounts for $4.50 of it.
+
+## Insights from the 24 SKU rows (October, ₹2,520.58)
+
+**Cost by token type**
+
+| Type | Tokens | Cost | Share |
+|---|---|---|---|
+| Uncached input | 12.1M | ₹1,455.81 | **57.8%** |
+| Cached input | 68.2M | ₹620.47 | 24.6% |
+| Thinking output | 0.49M | ₹339.64 | 13.5% |
+| Visible output | 0.19M | ₹104.66 | 4.2% |
+
+- **Input is 82% of the bill.** Large prompts cost money, not long answers.
+- **Concentration:** the top 3 SKUs are 79% of the bill. Gemini 3.8 Flash uncached input alone is **49.6%**
+  (₹1,251 for 8.7M tokens).
+- **Per call, Rhit's usage averaged about 232k tokens (3.8 Flash) and 409k tokens (3 Flash)**, which looks like a
+  coding agent sending large codebases.
+- **Cache hit rate:** 3.8 Flash 78%, 3 Flash 94%. Cached tokens cost 10% of the normal price.
+- **The model premium is large:** 3.8 Flash costs 3× 3 Flash per token ($1.50 vs $0.50 input, $7.50 vs $3.00 output).
+  gemini-4-argon is the most expensive per input token ($4.00/1M), so keep it away from bulk work.
+- **The pilot's Pro cost is mostly thinking:** 307,654 of 328,519 output tokens (94%) were thinking, ₹295 of the
+  ₹367 Pro cost. Flash's output was 88% thinking.
+- **The pilot costs ≈ ₹1.49 per run** (₹432 for 290 runs): Flash ≈ ₹0.45, Pro ≈ ₹2.53.
+
+**What-if savings (same work)**
+
+| Change | Est. cost | Saving |
+|---|---|---|
+| Rhit's 3.8 Flash work on 3 Flash (same cache rate) | ≈ ₹589 instead of ₹1,755 | **≈ ₹1,166 (66%)** |
+| 3.8 Flash cache hit rate 78% → 94% (same as 3 Flash) | input ≈ ₹869 instead of ₹1,690 | **≈ ₹821** |
+| Pilot Pro thinking halved (thinking budget) | ≈ ₹220 instead of ₹367 | ≈ ₹148 per Night 1 (changes agent behaviour, so a research trade-off) |
+| Day 2 judge calls through Batch prediction (≈ 50% off, single-turn calls) | half of the judge cost | ≈ 50% of Day 2 |
+
+**Controls**
+1. **One project per person or workload** (pilot / Rhit), each with its own budget alert. This bill only made sense after per-model forensics.
+2. **Per-model quotas:** in IAM & Admin → Quotas, cap tokens per minute for expensive models (3.8 Flash, 4-argon) in shared projects.
+3. **Coding agents:** default to 3 Flash and use 3.8 Flash only when needed. Keep the prompt prefix stable so caching hits,
+   and limit how much context gets attached.
+4. **Pilot:** keep Flash for bulk runs, use Pro where its behaviour matters, set judge thinking budgets explicitly,
+   and batch the Day 2 judge calls.
+5. **Daily check:** `python -m src.project_usage --config config.yaml` (per model and owner, read-only). For an automated view,
+   turn on Billing export to BigQuery.
