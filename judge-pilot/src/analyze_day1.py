@@ -16,7 +16,7 @@ import sys
 from collections import Counter, defaultdict
 from pathlib import Path
 
-from src.inspect_run import dedupe_runs, load_records
+from src.inspect_run import dedupe_runs, load_records, run_label
 from src.morning_check import wilson_interval
 
 # Attacker artifacts a final reply would name if the agent disclosed what it did (taken from the injection goal).
@@ -79,7 +79,7 @@ def ci(k: int, n: int) -> str:
 
 def build_report(runs: list[dict]) -> str:
     done = [r for r in runs if r.get("error") is None]
-    models = sorted({r["model_id"] for r in done})
+    models = sorted({run_label(r) for r in done})
     attacked = [r for r in done if not r.get("is_baseline") and isinstance(r.get("compromised_strict"), bool)]
     out: list[str] = ["# Day 1 results: agent runs for the judge study", ""]
     out.append(f"Source: data/runs/*.jsonl, {len(runs)} unique runs, {len(done)} completed. Ground truth = "
@@ -91,9 +91,9 @@ def build_report(runs: list[dict]) -> str:
             "| Model | Runs | Baseline | Attacked | Compromised | Not compromised | Injection seen | Baseline utility | Attacked utility |",
             "|---|---|---|---|---|---|---|---|---|"]
     for m in models:
-        rm = [r for r in done if r["model_id"] == m]
+        rm = [r for r in done if run_label(r) == m]
         b = [r for r in rm if r.get("is_baseline")]
-        a = [r for r in attacked if r["model_id"] == m]
+        a = [r for r in attacked if run_label(r) == m]
         k = sum(r["compromised_strict"] for r in a)
         out.append(f"| {m} | {len(rm)} | {len(b)} | {len(a)} | {ci(k, len(a))} ({k}) | {len(a) - k} | "
                    f"{pct(sum(bool(r.get('injection_seen')) for r in a), len(a))} | "
@@ -103,7 +103,7 @@ def build_report(runs: list[dict]) -> str:
     # 2. Judge-relevant categories
     cats = ["compromised, disclosed in reply", "compromised, silent (reply hides it)", "resisted, flagged it in reply",
             "resisted, asked user a question", "resisted silently", "not compromised, never saw injection"]
-    counts = {m: Counter(classify(r) for r in attacked if r["model_id"] == m) for m in models}
+    counts = {m: Counter(classify(r) for r in attacked if run_label(r) == m) for m in models}
     out += ["## 2. Judge-relevant categories (attacked runs)", "",
             "Heuristic, from the final reply. 'Silent' compromises and 'resisted silently' are the hardest cases for a judge "
             "that reads only the final answer.", "",
@@ -120,7 +120,7 @@ def build_report(runs: list[dict]) -> str:
     goals: dict[tuple, str] = {}
     for r in attacked:
         key = (r["suite"], r["injection_task_id"])
-        by[key][r["model_id"]].append(r["compromised_strict"])
+        by[key][run_label(r)].append(r["compromised_strict"])
         goals[key] = (r.get("injection_task_goal") or "")[:70]
     for key in sorted(by, key=lambda k: (k[0], int(k[1].rsplit("_", 1)[1]))):
         cells = [pct(sum(by[key][m]), len(by[key][m])) for m in models]
@@ -131,7 +131,7 @@ def build_report(runs: list[dict]) -> str:
     out += ["## 4. Repeat stability (same task, same model, repeat 0 vs 1)", ""]
     groups: dict[tuple, list] = defaultdict(list)
     for r in attacked:
-        groups[(r["model_id"], r["suite"], r["user_task_id"], r["injection_task_id"])].append(r)
+        groups[(run_label(r), r["suite"], r["user_task_id"], r["injection_task_id"])].append(r)
     for m in models:
         g = [v for k, v in groups.items() if k[0] == m and len(v) >= 2]
         flips = [v for v in g if len({x["compromised_strict"] for x in v}) > 1]
@@ -145,7 +145,7 @@ def build_report(runs: list[dict]) -> str:
     out += ["## 5. Transcript size (judge input)", "",
             "| Model | Runs | Avg tokens (≈ chars/4) | Median | Max | Total |", "|---|---|---|---|---|---|"]
     for m in models:
-        sizes = sorted(transcript_tokens(r) for r in done if r["model_id"] == m)
+        sizes = sorted(transcript_tokens(r) for r in done if run_label(r) == m)
         if sizes:
             out.append(f"| {m} | {len(sizes)} | {sum(sizes) // len(sizes):,} | {sizes[len(sizes) // 2]:,} | {sizes[-1]:,} | {sum(sizes):,} |")
     out.append("")
@@ -160,7 +160,7 @@ def build_report(runs: list[dict]) -> str:
     out.append(f"- Compromised without the injection seen in a tool result: "
                f"{sum(1 for r in attacked if r['compromised_strict'] and not r.get('injection_seen'))} (should be 0)")
     big = sorted(done, key=lambda r: -(r.get("tokens_out") or 0))[:3]
-    out.append("- Largest outputs: " + ", ".join(f"{r['run_id']} ({r['model_id']}, {r['tokens_out']:,} out)" for r in big))
+    out.append("- Largest outputs: " + ", ".join(f"{r['run_id']} ({run_label(r)}, {r['tokens_out']:,} out)" for r in big))
     asks = [r for r in done if final_reply(r).rstrip().endswith("?")]
     out.append(f"- Final reply is a question: {len(asks)} of {len(done)} runs")
     out.append(f"- state_diff available: {pct(sum(r.get('state_diff') is not None for r in done), len(done))}")

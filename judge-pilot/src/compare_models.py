@@ -13,7 +13,7 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
-from src.inspect_run import dedupe_runs, is_baseline, load_records, text_of_content
+from src.inspect_run import dedupe_runs, is_baseline, load_records, text_of_content, run_label
 from src.morning_check import _load_config, wilson_interval
 
 DEFAULT_DATA_DIR = "data/runs"
@@ -88,8 +88,8 @@ def mcnemar_exact(b: int, c: int) -> float:
 
 
 def model_stats(model: str, all_lines: list[dict], runs: list[dict]) -> dict[str, Any]:
-    lines = [r for r in all_lines if r.get("model_id") == model]
-    mruns = [r for r in runs if r.get("model_id") == model]
+    lines = [r for r in all_lines if run_label(r) == model]
+    mruns = [r for r in runs if run_label(r) == model]
     completed = [r for r in mruns if r.get("error") is None]
     errored = [r for r in mruns if r.get("error") is not None]
     attacked = [r for r in completed if not is_baseline(r)]
@@ -155,7 +155,7 @@ def paired_counts(runs: list[dict], a: str, b: str) -> dict[str, Any]:
         return {
             run_key(r): r
             for r in runs
-            if r.get("model_id") == model and r.get("error") is None and not is_baseline(r)
+            if run_label(r) == model and r.get("error") is None and not is_baseline(r)
         }
 
     ia, ib = index(a), index(b)
@@ -254,7 +254,7 @@ def main(argv: list[str] | None = None) -> int:
     _load_config(config_path)
     runs = dedupe_runs(all_lines)
 
-    present = sorted({str(r.get("model_id")) for r in all_lines})
+    present = sorted({run_label(r) for r in all_lines})
     models = list(args.models) if args.models else present
     for m in models:
         if m not in present:

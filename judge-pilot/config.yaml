@@ -8,6 +8,8 @@ vertex:
   location: us-central1
   flash_model: gemini-2.5-flash
   pro_model: gemini-2.5-pro  # second agent model for the Flash vs Pro comparison
+  flash38_model: gemini-3.8-flash  # newer-generation comparison (2026-10-21)
+  pro31_model: gemini-3.1-pro-preview
   # Sent on every generate_content call (GoogleLLM default is also 0.0). The runner logs the value
   # read back from the GenerateContentConfig that was actually sent.
   temperature: 0.0
@@ -24,7 +26,10 @@ pricing:
   gemini-2.5-pro:  # CONFIRMED from Billing SKUs 2026-10-21 (<= 200k tier; ₹119.99 / ₹959.88 per 1M at ₹96/$)
     input_per_mtok: 1.25
     output_per_mtok: 10.00
-  # Not used by the pilot; only for src/project_usage.py. Derived from Billing SKUs 2026-10-21 (₹96/$).
+  gemini-3.1-pro-preview:  # UNCONFIRMED (third-party trackers); confirm from Billing after the smoke test
+    input_per_mtok: 2.00
+    output_per_mtok: 12.00
+  # gemini-3.8-flash is also an agent model since 2026-10-21. Derived from Billing SKUs 2026-10-21 (₹96/$).
   # Cached input is billed at 10% of input; project_usage cannot see cached tokens, so its estimates are upper bounds.
   gemini-3.8-flash:  # global; cached input 0.15
     input_per_mtok: 1.50
@@ -41,7 +46,7 @@ usage_owners:
   gemini-3-flash-preview: Rhit (possible)
   default: Manish/Rhit (unknown)
 
-spend_cap_usd: 6.0  # user-confirmed 2026-10-20 (Checkpoint 4); cumulative over all data/runs, Flash + Pro
+spend_cap_usd: 25.0  # user-confirmed 2026-10-21 ("go new models"); cumulative over all data/runs, all models
 concurrency: 4
 
 # Transient Vertex errors (5xx, 429, 408, timeouts, connection errors): exponential backoff with jitter.
@@ -77,3 +82,25 @@ plans:
   night1_pro:
     <<: *night1
     model: pro_model
+  # Newer generation (user "go new models", 2026-10-21). Smoke at both temperatures, then one night plan per model.
+  # Runs at a temperature other than vertex.temperature get run_ids keyed model_id@t<temp>.
+  smoke_38flash_t0:
+    <<: *smoke
+    model: flash38_model
+  smoke_38flash_t1:
+    <<: *smoke
+    model: flash38_model
+    temperature: 1.0
+  smoke_31pro_t0:
+    <<: *smoke
+    model: pro31_model
+  smoke_31pro_t1:
+    <<: *smoke
+    model: pro31_model
+    temperature: 1.0
+  night1_38flash:
+    <<: *night1
+    model: flash38_model
+  night1_31pro:
+    <<: *night1
+    model: pro31_model

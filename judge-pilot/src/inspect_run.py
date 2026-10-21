@@ -21,6 +21,13 @@ RESULT_TRUNC = 200
 MAX_STATE_ENTRIES = 15
 
 
+
+def run_label(rec: dict) -> str:
+    """model_id, plus @t<temperature> when the run used a non-zero temperature (e.g. gemini-3.8-flash@t1)."""
+    model = str(rec.get("model_id"))
+    temp = rec.get("temperature")
+    return model if temp in (None, 0, 0.0) else f"{model}@t{float(temp):g}"
+
 def _warn(msg: str) -> None:
     print(f"WARNING: {msg}", file=sys.stderr)
 

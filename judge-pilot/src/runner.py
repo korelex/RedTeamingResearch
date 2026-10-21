@@ -475,12 +475,12 @@ def _scrub(text: str) -> str:
     return text
 
 
-def execute_run(spec: RunSpec, cfg: dict, model_id: str, costs: CostTracker) -> dict:
+def execute_run(spec: RunSpec, cfg: dict, model_id: str, costs: CostTracker, run_key: str | None = None) -> dict:
     t0 = time.monotonic()
     acc = UsageAccumulator()
     capture: dict[str, Any] = {}
     rec: dict[str, Any] = {
-        "run_id": spec.run_id(model_id),
+        "run_id": spec.run_id(run_key or model_id),
         "timestamp": utc_now_iso(),
         "agentdojo_version": AGENTDOJO_VERSION,
         "benchmark_version": cfg["benchmark_version"],
@@ -635,20 +635,28 @@ def main(argv: list[str] | None = None) -> int:
     if model_key not in cfg["vertex"]:
         raise SystemExit(f"plan {args.plan!r}: model key {model_key!r} not found under vertex: in config")
     model_id = cfg["vertex"][model_key]
+    # A plan may set `temperature:`; non-default temperatures get their own run_ids (model_id@t<temp>) so they never
+    # collide with, or resume from, runs of the same model at the config default.
+    default_temp = cfg["vertex"].get("temperature", 0.0)
+    if "temperature" in plan:
+        cfg = {**cfg, "vertex": {**cfg["vertex"], "temperature": plan["temperature"]}}
+    temp = cfg["vertex"].get("temperature", 0.0)
+    run_key = model_id if temp == default_temp else f"{model_id}@t{float(temp):g}"
     prices = get_prices(cfg, model_id)  # fail fast if pricing is missing
 
     specs = expand_plan(cfg, args.plan)
-    remaining = pending_specs(specs, model_id, RUNS_DIR, rerun_ids=set(args.rerun_ids))
+    remaining = pending_specs(specs, run_key, RUNS_DIR, rerun_ids=set(args.rerun_ids))
     todo = remaining if args.limit is None else remaining[: args.limit]
 
     if args.dry_run:
         dry_run(specs, todo, model_id, prices)
+        print(f"temperature={temp} run_key={run_key}")
         return 0
 
     costs = CostTracker(cfg, model_id, RUNS_DIR)
     run_logger = RunLogger(RUNS_DIR, utc_date())
     concurrency = int(cfg.get("concurrency", 1))
-    print(f"plan={args.plan} model={model_id} benchmark={cfg['benchmark_version']} planned={len(specs)} "
+    print(f"plan={args.plan} model={model_id} temperature={temp} benchmark={cfg['benchmark_version']} planned={len(specs)} "
           f"skipped_completed={len(specs) - len(remaining)} to_run={len(todo)} concurrency={concurrency} "
           f"spend_so_far=${costs.total:.4f} cap=${costs.spend_cap_usd:.2f} "
           f"log={run_logger.path.relative_to(PROJECT_ROOT)}", flush=True)
@@ -692,7 +700,7 @@ def main(argv: list[str] | None = None) -> int:
                   f"est_spend=${costs.total:.4f} ETA={eta / 60:.1f}min", flush=True)
 
     def task(spec: RunSpec) -> dict:
-        rec = execute_run(spec, cfg, model_id, costs)
+        rec = execute_run(spec, cfg, model_id, costs, run_key)
         run_logger.write(rec)
         return rec
 

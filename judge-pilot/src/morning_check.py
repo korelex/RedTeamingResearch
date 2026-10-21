@@ -15,7 +15,7 @@ from typing import Any
 
 import yaml
 
-from src.inspect_run import dedupe_runs, is_baseline, load_records, one_line
+from src.inspect_run import dedupe_runs, is_baseline, load_records, one_line, run_label
 
 DEFAULT_DATA_DIR = "data/runs"
 DAY2_THRESHOLD = 20
@@ -69,12 +69,12 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="Morning check over recorded runs (read-only).")
     parser.add_argument("--config", default="config.yaml")
     parser.add_argument("--data-dir", default=DEFAULT_DATA_DIR)
-    parser.add_argument("--model", default=None, help="only runs of this model_id (default: all models)")
+    parser.add_argument("--model", default=None, help="only runs of this model_id or label, e.g. gemini-3.8-flash@t1 (default: all)")
     args = parser.parse_args(argv)
 
     all_lines = load_records(args.data_dir)
     if args.model:
-        all_lines = [r for r in all_lines if r.get("model_id") == args.model]
+        all_lines = [r for r in all_lines if args.model in (r.get("model_id"), run_label(r))]
     if not all_lines:
         print("no runs yet")
         return 0
