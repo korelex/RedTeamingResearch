@@ -68,6 +68,22 @@ Billing also counts the hung `504` request as Vertex measures it, which may diff
 
 - 2026-10-20: log created. Prices are still unconfirmed.
 - 2026-10-20: added the night1_pro batch.
+- 2026-10-21: first Billing figures (Reports screenshot, before credits; date range not yet confirmed):
+  "Gemini on Agent Platform" ₹850.90 and "Agent Platform Model Garden" ₹1,935.72 (marked "New"), ₹2,786.62 in total
+  (user: ≈ $27 for 20 Oct). That is about 6× our $4.52 estimate. **Open discrepancy, see below.**
+
+## Discrepancy under investigation (2026-10-21)
+
+| Billing product | Actual (before credits) | Our estimate | Ratio |
+|---|---|---|---|
+| Gemini on Agent Platform | ₹850.90 | $4.52 (Flash + Pro, all batches) | ≈ 2× (exchange rate to be confirmed) |
+| Agent Platform Model Garden | ₹1,935.72 | $0 (our code only calls gemini-2.5-flash / gemini-2.5-pro) | n/a |
+
+Things to check:
+1. The SKU breakdown (Reports, grouped by SKU, project `korelex-ai-lab`, 19–21 Oct): which SKUs make up each line.
+2. Whether anything else uses the project. Earlier metrics showed StreamGenerateContent calls that were not from
+   this code. Claude Code on this machine does not use Vertex (no `CLAUDE_CODE_USE_VERTEX` is set).
+3. Whether the Gemini 2.5 Pro SKUs bill under "Model Garden" rather than "Gemini".
 
 ## Quality vs cost (Night 1, same 125 attacked + 20 baseline runs per model)
 
