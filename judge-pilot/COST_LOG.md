@@ -150,3 +150,24 @@ Model Garden partner calls.
 3. **Unconfirmed prices** for the Gemini 3.x models.
 
 The Billing CSV grouped by SKU will settle the actual figures per model.
+
+## Reconciliation with the actual bill (2026-10-21)
+
+The actual total in Billing (before credits) is **₹2,786.62**: "Gemini on Agent Platform" ₹850.90 plus "Agent Platform
+Model Garden" ₹1,935.72. That is about $32 at an assumed ₹88/$, not $27. The exact rate is in the Billing CSV.
+
+The pilot's share can be stated with confidence. Its token counts match Vertex exactly, and the pilot uses no
+context caching, so its cost is simply tokens × price (assuming the Gemini 2.5 prices are right). Everything else
+in the bill is other usage.
+
+| Owner | Models | Est. cost | ≈ ₹ (at ₹88/$) | Share of ₹2,786.62 |
+|---|---|---|---|---|
+| Manish (judge-pilot) | gemini-2.5-pro | $3.87 | ₹340 | 12% |
+| Manish (judge-pilot) | gemini-2.5-flash | $0.66 | ₹58 | 2% |
+| **Manish (judge-pilot) subtotal** | | **$4.52** | **≈ ₹398** | **≈ 14%** |
+| **Rhit (possible) + other usage** | gemini-3.8-flash, gemini-3-flash-preview, Model Garden partner calls, small console tests | the rest | **≈ ₹2,389** | **≈ 86%** |
+| **Total (actual)** | | | **₹2,786.62** | 100% |
+
+The list-price estimate for Rhit's Gemini 3.x usage ($49.90 ≈ ₹4,390) is higher than the ₹2,389 left over. That
+fits most of Rhit's 79M input tokens being cached (billed about 90% cheaper). The Billing CSV grouped by SKU will
+give the exact split.
