@@ -24,6 +24,21 @@ pricing:
   gemini-2.5-pro:  # UNCONFIRMED: prompts <= 200k tokens tier; user to verify on Vertex pricing page
     input_per_mtok: 1.25
     output_per_mtok: 10.00
+  # Not used by the pilot; only for src/project_usage.py (whole-project cost breakdown). Secondary sources, Oct 2026.
+  gemini-3.8-flash:  # global endpoint intro rate until 2026-12-31 (non-global ~0.825 / 4.125)
+    input_per_mtok: 0.75
+    output_per_mtok: 3.75
+  gemini-3-flash-preview:
+    input_per_mtok: 0.50
+    output_per_mtok: 3.00
+
+# Who is likely behind each model's usage in korelex-ai-lab (for src/project_usage.py). Guesses, not audit data.
+usage_owners:
+  gemini-2.5-flash: Manish (judge-pilot runs)
+  gemini-2.5-pro: Manish (judge-pilot runs)
+  gemini-3.8-flash: Rhit (possible)
+  gemini-3-flash-preview: Rhit (possible)
+  default: Manish/Rhit (unknown)
 
 spend_cap_usd: 6.0  # user-confirmed 2026-10-20 (Checkpoint 4); cumulative over all data/runs, Flash + Pro
 concurrency: 4

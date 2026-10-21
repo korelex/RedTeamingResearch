@@ -121,3 +121,32 @@ have no token metric here.
 Conclusion: the pilot's token accounting is right. Billing also includes about 79M input tokens on Gemini 3.x models,
 plus partner-model (Model Garden) calls, made by another client that uses `korelex-ai-lab`. The SKU breakdown is still
 needed to confirm the prices and to split the ₹ lines.
+
+## Whole-project breakdown per model, with estimated cost (2026-10-21)
+
+Command: `python -m src.project_usage --config config.yaml` (read-only Cloud Monitoring, 15 Oct → 21 Oct 03:30 UTC).
+Prices are in `config.yaml` `pricing:`. The prices for the Gemini 3.x models come from secondary sources and are not confirmed.
+Owners are guesses from timing, not audit data.
+
+| Model | Possible owner | Calls | Input tokens | Output tokens | $/1M in / out | **Est. cost** | Hours (UTC, 20 Oct unless noted) |
+|---|---|---|---|---|---|---|---|
+| gemini-3.8-flash | Rhit (possible) | 169 | 39,196,404 | 89,338 | 0.75 / 3.75 | **$29.73** | 12:00–17:00 |
+| gemini-3-flash-preview | Rhit (possible) | 98 | 40,058,214 | 46,755 | 0.50 / 3.00 | **$20.17** | 17:00–22:00 |
+| gemini-2.5-pro | Manish (judge-pilot) | 602 | 454,339 | 329,789 | 1.25 / 10.00 | **$3.87** | 13:00–14:00 |
+| gemini-2.5-flash | Manish (judge-pilot) | 662 | 498,349 | 202,857 | 0.30 / 2.50 | **$0.66** | 04:00–14:00 (+630 tokens at 18:00) |
+| gemini-4-argon | Manish/Rhit | 5 | 61,686 | 136 | n/a | n/a (tiny) | 19 Oct 17:00 – 20 Oct 18:00 |
+| gemini-3.1-flash-lite | Manish/Rhit | 1 | 17,960 | 83 | n/a | n/a (tiny) | 19 Oct 17:00 |
+| gemini-nano-banana-2.1 | Manish/Rhit | 5 | 2,451 | 12 | n/a | n/a (tiny) | 19 Oct 17:00 – 20 Oct 04:00 |
+| gemini-3.5-flash-lite | Manish/Rhit | 2 | 0 | 0 | n/a | $0 | – |
+| Model Garden partner model (StreamRawPredict) | Manish/Rhit | 20 | not reported | not reported | n/a | in Billing: ₹1,935.72 line? | 19–20 Oct |
+
+**Estimated cost by owner:** Rhit (possible) ≈ **$49.90**, Manish (judge-pilot) ≈ **$4.52**, total ≈ **$54.42** before
+Model Garden partner calls.
+
+**This estimate is higher than Billing's ≈ $27–32.** The likely reasons:
+1. **Cached input.** A coding agent sending about 300k tokens per call usually reuses a cached context, which is
+   billed about 90% cheaper. The token metric doesn't separate cached tokens, so the Rhit estimate is an **upper bound**.
+2. **Billing lag.** The 3-flash-preview usage at 17:00–22:00 UTC may not yet appear in the screenshot.
+3. **Unconfirmed prices** for the Gemini 3.x models.
+
+The Billing CSV grouped by SKU will settle the actual figures per model.
