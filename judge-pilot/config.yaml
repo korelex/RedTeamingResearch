@@ -10,6 +10,12 @@ vertex:
   pro_model: gemini-2.5-pro  # second agent model for the Flash vs Pro comparison
   flash38_model: gemini-3.8-flash  # newer-generation comparison (2026-10-21)
   pro31_model: gemini-3.1-pro-preview
+  # Location per model where it differs from GOOGLE_CLOUD_LOCATION (.env). Gemini 3.x returns 404 in us-central1.
+  model_locations:
+    gemini-3.8-flash: global
+    gemini-3.1-pro-preview: global
+  # Models whose function-call thought_signatures are sent back on later turns (required by Gemini 3.x; see runner).
+  preserve_thought_signatures: [gemini-3.8-flash, gemini-3.1-pro-preview]
   # Sent on every generate_content call (GoogleLLM default is also 0.0). The runner logs the value
   # read back from the GenerateContentConfig that was actually sent.
   temperature: 0.0
@@ -42,12 +48,17 @@ pricing:
 usage_owners:
   gemini-2.5-flash: Manish (judge-pilot runs)
   gemini-2.5-pro: Manish (judge-pilot runs)
-  gemini-3.8-flash: Rhit (possible)
+  gemini-3.8-flash: Rhit (possible) / Manish (pilot, from 2026-10-21)
   gemini-3-flash-preview: Rhit (possible)
   default: Manish/Rhit (unknown)
 
 spend_cap_usd: 25.0  # user-confirmed 2026-10-21 ("go new models"); cumulative over all data/runs, all models
 concurrency: 4
+
+# Slower settings for Gemini 3.x plans (shared-capacity 429s on the global endpoint).
+gemini3_throttle: &gemini3_throttle
+  concurrency: 2
+  retry: {max_tries: 10, base_delay_s: 5.0, max_delay_s: 120.0}
 
 # Transient Vertex errors (5xx, 429, 408, timeouts, connection errors): exponential backoff with jitter.
 retry:
@@ -83,24 +94,31 @@ plans:
     <<: *night1
     model: pro_model
   # Newer generation (user "go new models", 2026-10-21). Smoke at both temperatures, then one night plan per model.
+  # Gemini 3.x on the global endpoint hits shared-capacity 429s, so these plans use fewer workers and longer backoff.
   # Runs at a temperature other than vertex.temperature get run_ids keyed model_id@t<temp>.
   smoke_38flash_t0:
     <<: *smoke
+    overrides: *gemini3_throttle
     model: flash38_model
   smoke_38flash_t1:
     <<: *smoke
+    overrides: *gemini3_throttle
     model: flash38_model
     temperature: 1.0
   smoke_31pro_t0:
     <<: *smoke
+    overrides: *gemini3_throttle
     model: pro31_model
   smoke_31pro_t1:
     <<: *smoke
+    overrides: *gemini3_throttle
     model: pro31_model
     temperature: 1.0
   night1_38flash:
     <<: *night1
+    overrides: *gemini3_throttle
     model: flash38_model
   night1_31pro:
     <<: *night1
+    overrides: *gemini3_throttle
     model: pro31_model

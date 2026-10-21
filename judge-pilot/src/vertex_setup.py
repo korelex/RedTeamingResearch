@@ -46,6 +46,8 @@ def build_pipeline(model_id: str | None = None) -> AgentPipeline:
     # Attacks look up the model display name here (base_attacks.py); patch at runtime only.
     models.MODEL_NAMES.setdefault(model_id, GOOGLE_DISPLAY_NAME)
 
+    # Some models are served only from certain locations (e.g. Gemini 3.x only from "global").
+    location = (load_config()["vertex"].get("model_locations") or {}).get(model_id, location)
     client = genai.Client(vertexai=True, project=project, location=location)
     llm = GoogleLLM(model_id, client)
     config = PipelineConfig(

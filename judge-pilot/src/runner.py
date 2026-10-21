@@ -79,6 +79,36 @@ _google_llm.chat_completion_request = _chat_completion_request_no_retry
 
 
 # --------------------------------------------------------------------------------------------
+# Runtime patch: Gemini 3.x requires each function call's thought_signature to be sent back on later turns
+# ("400 Function call is missing a thought_signature"). AgentDojo rebuilds model turns from its own message
+# dicts and drops the signatures. When enabled (vertex.preserve_thought_signatures lists the model), the model's
+# original Content is kept on the assistant message under GOOGLE_CONTENT_KEY and sent back unchanged. The key is
+# stripped from logged transcripts. Off for other models, so Gemini 2.5 requests stay as on Day 1.
+# --------------------------------------------------------------------------------------------
+GOOGLE_CONTENT_KEY = "_google_content"
+PRESERVE_THOUGHT_SIGNATURES = False
+_orig_google_to_assistant_message = _google_llm._google_to_assistant_message
+_orig_message_to_google = _google_llm._message_to_google
+
+
+def _google_to_assistant_message_keep(response):
+    message = _orig_google_to_assistant_message(response)
+    if PRESERVE_THOUGHT_SIGNATURES and response.candidates and response.candidates[0].content is not None:
+        message[GOOGLE_CONTENT_KEY] = response.candidates[0].content
+    return message
+
+
+def _message_to_google_keep(message):
+    if message.get("role") == "assistant" and message.get(GOOGLE_CONTENT_KEY) is not None:
+        return message[GOOGLE_CONTENT_KEY]
+    return _orig_message_to_google(message)
+
+
+_google_llm._google_to_assistant_message = _google_to_assistant_message_keep
+_google_llm._message_to_google = _message_to_google_keep
+
+
+# --------------------------------------------------------------------------------------------
 # Instrumented genai client: per-run token accounting, seed/timeout injection, transient retries
 # --------------------------------------------------------------------------------------------
 class UsageAccumulator:
@@ -543,7 +573,9 @@ def execute_run(spec: RunSpec, cfg: dict, model_id: str, costs: CostTracker, run
     finally:
         msgs = capture.get("messages")
         if msgs is not None:
-            rec["transcript"] = to_jsonable(list(msgs))
+            rec["transcript"] = to_jsonable(
+                [{k: v for k, v in m.items() if k != GOOGLE_CONTENT_KEY} for m in msgs]
+            )
             rec["tool_calls"] = extract_tool_calls(rec["transcript"])
         pre = capture.get("pre_environment")
         post = capture.get("task_environment") if (rec["error"] is None or rec["error"]["type"] == "MalformedResponse") else None
@@ -643,6 +675,8 @@ def main(argv: list[str] | None = None) -> int:
     temp = cfg["vertex"].get("temperature", 0.0)
     run_key = model_id if temp == default_temp else f"{model_id}@t{float(temp):g}"
     prices = get_prices(cfg, model_id)  # fail fast if pricing is missing
+    global PRESERVE_THOUGHT_SIGNATURES
+    PRESERVE_THOUGHT_SIGNATURES = model_id in (cfg["vertex"].get("preserve_thought_signatures") or [])
 
     specs = expand_plan(cfg, args.plan)
     remaining = pending_specs(specs, run_key, RUNS_DIR, rerun_ids=set(args.rerun_ids))
