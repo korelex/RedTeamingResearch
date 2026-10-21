@@ -171,3 +171,37 @@ in the bill is other usage.
 The list-price estimate for Rhit's Gemini 3.x usage ($49.90 ≈ ₹4,390) is higher than the ₹2,389 left over. That
 fits most of Rhit's 79M input tokens being cached (billed about 90% cheaper). The Billing CSV grouped by SKU will
 give the exact split.
+
+## ACTUAL cost per model from the Billing SKU CSV (October 2026, downloaded 2026-10-21)
+
+Source: `~/Downloads/My Billing Account_Reports, 2026-10-01 — 2026-10-31.csv` (grouped by SKU, before credits).
+The exchange rate implied by the SKU prices is **₹96 = $1**.
+
+| Model | Possible owner | Input tokens | Cached input | Output tokens (incl. thinking) | **Actual ₹** | ≈ $ | Our estimate | Share |
+|---|---|---|---|---|---|---|---|---|
+| gemini-3.8-flash | Rhit (possible) | 8,689,902 | 30,506,502 | 89,338 | **₹1,754.76** | $18.28 | $29.73 at the wrong price (upper bound) | 69.6% |
+| gemini-2.5-pro | Manish (judge-pilot) | 429,699 | 20,810 | 328,519 | **₹367.15** | $3.82 | $3.87 | 14.6% |
+| gemini-3-flash-preview | Rhit (possible) | 2,368,403 | 37,689,811 | 46,755 | **₹308.02** | $3.21 | $20.17 (no caching) | 12.2% |
+| gemini-2.5-flash | Manish (judge-pilot) | 503,997 | 31,178 | 211,105 | **₹65.26** | $0.68 | $0.66 | 2.6% |
+| gemini-4-argon | Manish/Rhit | 61,686 | – | 136 | **₹23.94** | $0.25 | n/a | 0.9% |
+| gemini-3.1-flash-lite | Manish/Rhit | 35,036 | – | 1,718 | **₹1.09** | $0.01 | n/a | 0.0% |
+| gemini-nano-banana-2.1 | Manish/Rhit | 2,451 | – | 12 | **₹0.36** | $0.00 | n/a | 0.0% |
+| Application Topology | – | – | – | – | ₹0.00 | $0 | – | 0% |
+| **Total (October)** | | | | | **₹2,520.58** | **$26.26** | | 100% |
+
+### By owner
+
+| Possible owner | Models | **Actual ₹** | ≈ $ | Share |
+|---|---|---|---|---|
+| Rhit (possible) | gemini-3.8-flash, gemini-3-flash-preview | **₹2,062.78** | $21.49 | 81.8% |
+| Manish (judge-pilot) | gemini-2.5-pro, gemini-2.5-flash | **₹432.41** | $4.50 | 17.2% |
+| Manish/Rhit (console tests) | gemini-4-argon, gemini-3.1-flash-lite, gemini-nano-banana-2.1 | **₹25.39** | $0.26 | 1.0% |
+
+### Findings
+- **The pilot's estimate was accurate:** $4.52 estimated against $4.50 billed (−0.4%). The Gemini 2.5 Flash and Pro
+  prices in `config.yaml` are confirmed. Vertex also applied a small implicit-caching discount to about 52k pilot tokens.
+- **The Gemini 3.8 Flash price from secondary sources was wrong:** it bills at **$1.50 / $7.50**, not $0.75 / $3.75. Fixed in `config.yaml`.
+- **Rhit's usage was mostly cached input** (68M of 79M input tokens). That is why the list-price estimate was too high.
+- **The bill has no partner-model (Claude, Llama and so on) SKUs.** The "Agent Platform Model Garden" product in the earlier
+  screenshot contains newer Gemini models, not partner models. The 20 `StreamRawPredict` calls cost nothing.
+- **Running total:** ₹2,520.58 ≈ $26.26 of the ≈ $290 credits used in October; the pilot accounts for $4.50 of it.

@@ -18,17 +18,18 @@ vertex:
 
 # Prices in USD per million tokens. Thinking tokens are counted as output.
 pricing:
-  gemini-2.5-flash:  # UNCONFIRMED: user to verify on Vertex pricing page
+  gemini-2.5-flash:  # CONFIRMED from Billing SKUs 2026-10-21 (₹28.79 / ₹239.98 per 1M at ₹96/$)
     input_per_mtok: 0.30
     output_per_mtok: 2.50
-  gemini-2.5-pro:  # UNCONFIRMED: prompts <= 200k tokens tier; user to verify on Vertex pricing page
+  gemini-2.5-pro:  # CONFIRMED from Billing SKUs 2026-10-21 (<= 200k tier; ₹119.99 / ₹959.88 per 1M at ₹96/$)
     input_per_mtok: 1.25
     output_per_mtok: 10.00
-  # Not used by the pilot; only for src/project_usage.py (whole-project cost breakdown). Secondary sources, Oct 2026.
-  gemini-3.8-flash:  # global endpoint intro rate until 2026-12-31 (non-global ~0.825 / 4.125)
-    input_per_mtok: 0.75
-    output_per_mtok: 3.75
-  gemini-3-flash-preview:
+  # Not used by the pilot; only for src/project_usage.py. Derived from Billing SKUs 2026-10-21 (₹96/$).
+  # Cached input is billed at 10% of input; project_usage cannot see cached tokens, so its estimates are upper bounds.
+  gemini-3.8-flash:  # global; cached input 0.15
+    input_per_mtok: 1.50
+    output_per_mtok: 7.50
+  gemini-3-flash-preview:  # cached input 0.05
     input_per_mtok: 0.50
     output_per_mtok: 3.00
 
