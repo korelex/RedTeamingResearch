@@ -100,3 +100,24 @@ Things to check:
 
 Paired over the 125 attacked runs: both compromised in 58, only Flash in 29, only Pro in 7, neither in 31
 (exact McNemar p = 0.0003). Source: `python -m src.compare_models --config config.yaml`.
+
+### Finding (2026-10-21): our token logs match Vertex; most of the bill is other usage in the same project
+
+Source: Cloud Monitoring `aiplatform.googleapis.com/publisher/online_serving/token_count`, summed per model.
+
+| Model | Vertex-counted tokens (in / out) | Our logs (in / out) | Ours? |
+|---|---|---|---|
+| gemini-2.5-flash | 498,349 / 202,857 (+630 at 18–19 UTC) | 497,091 / 202,421 | yes (difference = vertex_check / Day 1 calls) |
+| gemini-2.5-pro | 454,339 / 329,789 | 454,339 / 329,789 | yes, exact |
+| gemini-3.8-flash | ≈ 39.2M / 89k (20 Oct 12–14 and 17–18 UTC) | none | **no** |
+| gemini-3-flash-preview | ≈ 40.1M / 47k (20 Oct 18–22 UTC) | none | **no** |
+| gemini-4-argon, gemini-3.1-flash-lite, gemini-nano-banana-2.1 | small (console-style tests on 19–20 Oct) | none | **no** |
+
+Request counts (serviceruntime `api/request_count`, 19–21 Oct): GenerateContent 1,264 (our runs), StreamGenerateContent
+280, StreamRawPredict 20, SetPublisherModelConfig 1 (19 Oct 18:00 UTC), plus console UI calls. Our code makes only
+non-streaming GenerateContent calls. StreamRawPredict is the method used by partner models in Model Garden, which
+have no token metric here.
+
+Conclusion: the pilot's token accounting is right. Billing also includes about 79M input tokens on Gemini 3.x models,
+plus partner-model (Model Garden) calls, made by another client that uses `korelex-ai-lab`. The SKU breakdown is still
+needed to confirm the prices and to split the ₹ lines.
