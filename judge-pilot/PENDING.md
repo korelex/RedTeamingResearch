@@ -1,5 +1,11 @@
 # Pending items: resume 2026-10-22 morning
 
+> **Update 2026-10-21 13:50 IST.** Manish decided: "go 31pro", 3.8 Flash at full Night 1 size (142 runs), no VM, no
+> separate project. `logs/run_new_models.sh` is running under `caffeinate` (pid in `logs/night1_new_models.pid`,
+> log `logs/night1_new_models.log`). It runs `night1_31pro` and then `night1_38flash`, up to 3 resume attempts each.
+> The first 10 runs on 3.1 Pro had 0 errors (ETA ≈ 2 h). 3.8 Flash may take 1–2 days.
+> Keep the laptop on power with the lid open. If it stops, rerun `caffeinate -ims logs/run_new_models.sh`.
+
 State at pause (2026-10-21, ≈ 13:45 IST): **nothing is running.** Every result is saved in `data/runs/` and all code
 is committed (last commit `123ad8b`). Pilot spend so far: **$5.38 of the $25 cap**.
 
