@@ -97,3 +97,29 @@ python -m src.compare_models --config config.yaml
 ### Derived fields
 `compromised_strict` (fixes the banking injection_task_0/1/3 checks) and `injection_seen` are added by the
 runner. Older lines are backfilled with `python -m src.derived --backfill` (keeps a `.jsonl.bak`).
+
+### Gemini 3.x models and temperature
+Plans can set `model: <key under vertex:>` and `temperature:`. Runs at a non-default temperature get their own run_ids
+and show as `<model>@t<temp>` in the reports. Gemini 3.x models are served only from the `global` location
+(`vertex.model_locations`), and their function-call thought signatures are passed back unchanged
+(`vertex.preserve_thought_signatures`). Their plans use `gemini3_throttle` (2 workers, longer backoff) because of
+shared-capacity 429 errors. Wrap long runs in `caffeinate -ims` so the Mac doesn't sleep.
+
+### Loop check
+```
+python -m src.loop_check [--models LABEL ...] [--all]
+```
+Flags repeated identical tool calls, 15 or more model calls, and 4,000 or more output tokens per call (thinking loops).
+
+### Day 1 analysis
+```
+python -m src.analyze_day1        # writes DAY1_RESULTS.md
+```
+Per model: compromise rate, judge-relevant categories, success per injection task, repeat flips, transcript size.
+
+### Whole-project usage and cost
+```
+python -m src.project_usage --config config.yaml [--start 2026-10-15]
+```
+Read-only Cloud Monitoring token counts per model, priced from `pricing:`, with the possible owner from
+`usage_owners:`. Compare with the Billing SKU CSV (see `COST_LOG.md`).
