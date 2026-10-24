@@ -1,6 +1,6 @@
 # Pre-registration: Do LLM judges misreport attacks on AI agents? (Day 2)
 
-Status: **DRAFT, awaiting approval by Manish.** It is frozen once committed with "APPROVED" below. No judge call is made
+Status: **APPROVED by Manish on 2026-10-24, before any judge call.** It is frozen once committed with "APPROVED" below. No judge call is made
 before that commit. Any later change is listed under "Deviations" with a date and reason, and is never edited silently.
 
 ## 1. Data
@@ -147,7 +147,7 @@ RECORD:
 
 ## Approval
 
-- [ ] APPROVED by Manish on ____ (commit hash recorded here after approval)
+- [x] APPROVED by Manish on 2026-10-24 ("approved"). The approval commit is the one that ticks this box; see `git log -- PREREGISTRATION.md`.
 
 ## Deviations
 
