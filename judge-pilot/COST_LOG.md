@@ -255,3 +255,13 @@ The exchange rate implied by the SKU prices is **₹96 = $1**.
 | 03:39 | Claude Haiku 5.5 (`claude-haiku-5-5`) | global | 429, quota 0; increase request denied automatically | 0 / 0 (not billed) | n/a |
 | 04:20 | Llama 4 Maverick, Qwen3 235B | us-east5, us-south1, global | 404, model not enabled | 0 / 0 (not billed) | n/a |
 | 04:34 | Llama 4 Maverick (`meta/llama-4-maverick-17b-128e-instruct-maas`), after Enable + license | us-east5 | **200 OK** ("OK") | 16 / 2 | Does a Llama 4 SKU appear, and does the credit line cancel it? |
+
+## Day 2 judge runs (2026-10-24, estimated from token counts and config.yaml prices)
+
+| Run | Time (UTC) | Calls | Errors | Gemini 3.1 Pro | Llama 4 Maverick | promptfoo on 2.5 Flash | Total |
+|---|---|---|---|---|---|---|---|
+| `judge_smoke` | morning | 69 | 0 | $0.185 | $0.011 | $0.012 | $0.21 |
+| `judge_full` | 11:14–13:22 | 7,960 | 0 | $17.52 | $1.11 | $1.38 | $20.01 |
+
+Llama 4 and Gemini 3.1 Pro prices are UNCONFIRMED; check both SKUs and credit coverage in Billing on 25 Oct
+(PREREGISTRATION.md deviation 2).
