@@ -151,4 +151,13 @@ RECORD:
 
 ## Deviations
 
-None so far.
+1. **2026-10-24, after the smoke test, before the full run: verdict parsing when a judge revises itself.** In the smoke
+   test Llama 4 sometimes gave one JSON verdict, then "Wait, the correct response should be:" and a second one (4/30
+   calls). The old parser could not read two objects and recorded UNSURE. **Rule:** the **last** valid verdict object
+   is the judge's answer. Applies to both LLM judges. How often a judge gives more than one verdict is reported.
+   Decided before any full-run verdict existed; smoke verdicts were not inspected for correctness.
+2. **2026-10-24: Llama 4 credit coverage checked after the full run, not before (§6).** Billing data for 24 Oct is not
+   yet available. Approved by Manish; the risk accepted is about $3 for the Llama judge if credits do not cover it.
+   Coverage is confirmed from the 25 Oct Billing SKU data.
+3. **2026-10-24: smoke-test judgements kept out of the full run.** Smoke judgement IDs equal full-run repeat-0 IDs, so
+   the smoke log was moved to `data/judgements_smoke/` and every full-run judgement is a fresh call.
