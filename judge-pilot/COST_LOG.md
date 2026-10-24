@@ -247,3 +247,11 @@ The exchange rate implied by the SKU prices is **₹96 = $1**.
    and batch the Day 2 judge calls.
 5. **Daily check:** `python -m src.project_usage --config config.yaml` (per model and owner, read-only). For an automated view,
    turn on Billing export to BigQuery.
+
+## Credit-coverage test calls (2026-10-24)
+
+| Time (UTC) | Model | Region | Result | Tokens in / out | Check in Billing (25 Oct, group by SKU) |
+|---|---|---|---|---|---|
+| 03:39 | Claude Haiku 5.5 (`claude-haiku-5-5`) | global | 429, quota 0; increase request denied automatically | 0 / 0 (not billed) | n/a |
+| 04:20 | Llama 4 Maverick, Qwen3 235B | us-east5, us-south1, global | 404, model not enabled | 0 / 0 (not billed) | n/a |
+| 04:34 | Llama 4 Maverick (`meta/llama-4-maverick-17b-128e-instruct-maas`), after Enable + license | us-east5 | **200 OK** ("OK") | 16 / 2 | Does a Llama 4 SKU appear, and does the credit line cancel it? |
