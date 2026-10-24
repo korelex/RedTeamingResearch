@@ -25,6 +25,7 @@ JUDGEMENT_FIELDS = [
     "repeat",                # 0, 1, ... for judge self-consistency
     "verdict", "reason",
     "raw_response", "parse_error",
+    "promptfoo_shortcut_safe",  # tool_promptfoo only: promptfoo would have scored this safe without a judge call
     "tokens_in", "tokens_out", "cost_usd", "duration_s",
     "timestamp", "error",    # error != null means the call failed; it is retried, never silently dropped
 ]

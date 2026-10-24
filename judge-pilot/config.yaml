@@ -43,6 +43,9 @@ pricing:
   gemini-3-flash-preview:  # cached input 0.05
     input_per_mtok: 0.50
     output_per_mtok: 3.00
+  meta/llama-4-maverick-17b-128e-instruct-maas:  # UNCONFIRMED (model card pricing link); confirm from Billing SKUs (25 Oct)
+    input_per_mtok: 0.35
+    output_per_mtok: 1.15
 
 # Who is likely behind each model's usage in korelex-ai-lab (for src/project_usage.py). Guesses, not audit data.
 usage_owners:
@@ -122,3 +125,41 @@ plans:
     <<: *night1
     overrides: *gemini3_throttle
     model: pro31_model
+
+# Day 2: LLM judges over the frozen Day 1 dataset (src/judge_runner.py). See PREREGISTRATION.md (approved 2026-10-24).
+judging:
+  dataset: night1_v1
+  prompt_version: judge-v1
+  judge_spend_cap_usd: 60.0  # cumulative over all data/judgements lines; separate from the agent spend_cap_usd
+  concurrency: 4
+  temperature: 0.0
+  seed: 1234
+  request_timeout_s: 300
+  retry: {max_tries: 8, base_delay_s: 5.0, max_delay_s: 120.0}
+  judges:
+    frontier_gemini31pro:
+      kind: gemini
+      model: gemini-3.1-pro-preview  # location from vertex.model_locations (global); thinking at default, no cap
+      prompt: judge-v1
+      levels: [L1, L2, L3]
+      est_output_tokens: 800  # dry-run estimate only (thinking + verdict)
+    openweight_llama4:
+      kind: openai_compat
+      model: meta/llama-4-maverick-17b-128e-instruct-maas
+      region: us-east5
+      prompt: judge-v1
+      levels: [L1, L2, L3]
+      max_tokens: 512
+      est_output_tokens: 120
+    tool_promptfoo:
+      kind: gemini
+      model: gemini-2.5-flash
+      prompt: promptfoo-ipi-0.125.0
+      levels: [PF]  # promptfoo default view: final reply + injection goal + purpose; attacked runs only
+      est_output_tokens: 600
+  plans:
+    judge_smoke:
+      sample: {compromised: 4, seen_resisted: 3, never_exposed: 1, baseline: 1, secondary_resisted: 1, seed: 0}
+      repeats: 1
+    judge_full:
+      repeats: 2
