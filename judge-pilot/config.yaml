@@ -32,7 +32,7 @@ pricing:
   gemini-2.5-pro:  # CONFIRMED from Billing SKUs 2026-10-21 (<= 200k tier; ₹119.99 / ₹959.88 per 1M at ₹96/$)
     input_per_mtok: 1.25
     output_per_mtok: 10.00
-  gemini-3.1-pro-preview:  # UNCONFIRMED (third-party trackers); confirm from Billing after the smoke test
+  gemini-3.1-pro-preview:  # CONFIRMED 2026-10-27 from Billing SKUs (₹746.11 / ₹1,341.02 at ₹96 per $)
     input_per_mtok: 2.00
     output_per_mtok: 12.00
   # gemini-3.8-flash is also an agent model since 2026-10-21. Derived from Billing SKUs 2026-10-21 (₹96/$).

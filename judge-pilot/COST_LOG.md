@@ -285,3 +285,15 @@ October usage rose from ₹2,786.62 (21 Oct) to ≈ ₹6.35k (27 Oct); the pilot
 Llama 4 total ₹107.86 ≈ $1.12, matching our estimate ($1.11 full + $0.011 smoke); fully paid by credits. The ₹96/$
 rate is the one implied by the earlier SKU reconciliation (₹2,520.58 = $26.26). Gemini 3.1 Pro SKUs were not in the
 visible part of the report; its price ($2 / $12) is still unconfirmed.
+
+## Gemini 3.1 Pro price confirmed (same report, screenshot 2026-10-27 15:48 IST)
+
+| SKU | Billed (all credited) | Our tokens (Day 1 agent runs + Day 2 judges) | Implied price at ₹96/$ | config.yaml |
+|---|---|---|---|---|
+| Gemini 3.0 / 3.1 Pro Text Input - Predictions (EAC4-305F-1249) | ₹746.11 | 3,929,142 (1,035,891 + 2,893,251) | **$1.98 / M** | $2.00 ✅ |
+| Gemini 3.0 / 3.1 Pro Text Output - Predictions (2737-2D33-D986) | ₹1,341.02 | 1,164,215 (171,350 + 992,865) | **$12.00 / M** | $12.00 ✅ |
+| Gemini 3.0 / 3.1 Pro Text Input Caching (8308-9CED-8950) | ₹0.82 | not logged separately | – | – |
+
+The small input gap (1%) is cached input billed on the caching SKU. Output includes thinking tokens, as the runner
+assumes. All model prices used by the pilot are now confirmed from Billing; every charge was paid by credits.
+Report subtotal (last 15 days, all SKUs, after credits): ₹0.

@@ -11,7 +11,7 @@ Legend: ✅ done · 🟡 partly done · ⏳ waiting on something external · ❌
 | Day 3 | Grounding + dual-target attack | 🟡 Grounding done (as L3 in Day 2); dual-target attack ❌ |
 
 **Spend so far:** ≈ $35.7 estimated (Day 1 agent runs ≈ $15.45, Day 2 judges ≈ $20.22), all on Vertex AI credits.
-Some prices are still unconfirmed.
+All prices confirmed from Billing on 27 Oct; everything was paid by credits.
 
 ## Day 1: agent runs (`day1prompt2.md`)
 
@@ -74,7 +74,7 @@ Some prices are still unconfirmed.
 
 | # | Item | Owner | When |
 |---|---|---|---|
-| 1 | ✅ Credit coverage confirmed 27 Oct (₹6.35k cost, ₹0.00 after credits). Still open: per-SKU prices for Llama 4 ($0.35/$1.15) and Gemini 3.1 Pro ($2/$12) | Manish (Reports by SKU or CSV) → Claude updates `config.yaml` | optional |
+| 1 | ✅ Credit coverage confirmed 27 Oct (₹0.00 after credits); Llama 4 ($0.35/$1.15) and Gemini 3.1 Pro ($2/$12) prices confirmed from Billing SKUs | done | 27 Oct |
 | 2 | Day 3 dual-target attack: design, pre-registration addendum, runs, judging, analysis | Claude drafts → Manish approves | after 1 |
 | 3 | Budget alerts at 50% and 90% of credits (Cloud Billing console) | Manish | not yet confirmed |
 | 4 | Separate GCP project from Rhit's usage (shared credits and capacity) | Manish | open decision |
