@@ -296,4 +296,4 @@ visible part of the report; its price ($2 / $12) is still unconfirmed.
 
 The small input gap (1%) is cached input billed on the caching SKU. Output includes thinking tokens, as the runner
 assumes. All model prices used by the pilot are now confirmed from Billing; every charge was paid by credits.
-Report subtotal (last 15 days, all SKUs, after credits): ₹0.
+Coverage: the Billing overview for 1–27 Oct shows total cost ₹0.00 after credits (see above).
