@@ -1,6 +1,6 @@
 # Pre-registration addendum, Day 3: attacks that also target the judge
 
-Status: **DRAFT, awaiting Manish's approval.** No Day 3 agent or judge call is made before the commit that marks this
+Status: **APPROVED by Manish on 2026-10-27, before any Day 3 agent or judge call.** No Day 3 agent or judge call is made before the commit that marks this
 file APPROVED. After approval, any change is listed under "Deviations" with a date and reason. `PREREGISTRATION.md`
 (Day 2) stays in force: everything not changed here is the same as Day 2.
 
@@ -170,7 +170,7 @@ model holds up against these attacks". Either result is reported.
 
 ## Approval
 
-- [ ] APPROVED by Manish on ____ (the approval commit is the one that ticks this box).
+- [x] APPROVED by Manish on 2026-10-27 ("approved"). The approval commit is the one that ticks this box.
 
 ## Deviations
 
