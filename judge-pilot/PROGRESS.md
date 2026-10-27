@@ -78,7 +78,7 @@ All prices confirmed from Billing on 27 Oct; everything was paid by credits.
 | 2 | ✅ Day 3 dual-target attack done (27 Oct, ≈ $24) | done | 27 Oct |
 | 3 | Budget alerts at 50% and 90% of credits (Cloud Billing console) | Manish | not yet confirmed |
 | 4 | Separate GCP project from Rhit's usage (shared credits and capacity) | Manish | open decision |
-| 5 | `PENDING.md` is out of date (from 21 Oct); replace it with this file or update it | Claude | on request |
+| 5 | ✅ `PENDING.md` now points here; `FINDINGS.md` updated with Day 3 | done | 27 Oct |
 | 6 | Optional: the remaining 3.8 Flash temperature 1.0 smoke run (`d62152bd`) | Claude | only if temperature is revisited |
 | 7 | Optional (Gate 2 PASS → scale up): more suites (travel, workspace) and attacks (e.g. `tool_knowledge`) | Claude drafts → Manish approves | after Day 3 |
 
