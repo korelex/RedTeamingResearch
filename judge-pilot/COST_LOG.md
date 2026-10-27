@@ -297,3 +297,23 @@ visible part of the report; its price ($2 / $12) is still unconfirmed.
 The small input gap (1%) is cached input billed on the caching SKU. Output includes thinking tokens, as the runner
 assumes. All model prices used by the pilot are now confirmed from Billing; every charge was paid by credits.
 Coverage: the Billing overview for 1–27 Oct shows total cost ₹0.00 after credits (see above).
+
+## Estimated vs actual, whole pilot (Billing → Reports by SKU, last 15 days, read 2026-10-27; ₹96/$)
+
+Estimates are from logged tokens × config.yaml prices, counting every call made (retries, smoke runs, errored runs).
+"Billed" sums all SKUs of that model in the report (input + output + thinking + caching), before credits.
+
+| Model | Used for | Pilot estimate | Billed (whole project) | Difference | Verdict |
+|---|---|---|---|---|---|
+| gemini-3.1-pro-preview | Day 1 agent ($4.13) + Day 2 judge ($17.70) | ₹2,095.57 ($21.83) | ₹2,087.95 ($21.75) | −0.4% | ✅ exact |
+| Llama 4 Maverick | Day 2 judge | ₹107.86 ($1.12) | ₹107.86 ($1.12) | 0% | ✅ exact |
+| gemini-2.5-flash | Day 1 agent ($0.66) + Day 2 promptfoo judge ($1.39) | ₹196.31 ($2.04) | ₹214.61 ($2.24) | +9% (₹18) | ✅ close; gap = setup/test calls not logged as runs |
+| gemini-2.5-pro | Day 1 agent | ₹371.12 ($3.87) | ₹770.78 ($8.03) | +₹400 | ⚠️ pilot part matched on 21 Oct (₹367.15); the extra ≈ ₹400 came after the pilot's last 2.5 Pro run, so it is other usage on the project |
+| gemini-3.8-flash | Day 1 agent | ₹667.83 ($6.96) | ₹2,404.46 ($25.05) | +₹1,737 | ⚠️ shared SKU; mostly other usage (see 21 Oct reconciliation) |
+| Other SKUs (Gemini 3 Flash, 4 Argon, Nano Banana, 3.1 Flash Lite, networking) | not the pilot | – | ≈ ₹700 | – | not pilot |
+
+**Pilot total:** ≈ ₹3,439 ($35.8) estimated. Where the pilot is the only user of a model (3.1 Pro, Llama 4, 2.5 Flash),
+estimate and bill agree within 0–9%. The project's 15-day bill (≈ ₹6,288, all paid by credits) is ≈ 55% pilot and
+≈ 45% other usage, mainly Gemini 3.8 Flash, Gemini 3 Flash and extra Gemini 2.5 Pro.
+To split 2.5 Pro and 3.8 Flash by user exactly: `python -m src.project_usage --start 2026-10-22T00:00:00Z`
+(needs a fresh ADC login).
