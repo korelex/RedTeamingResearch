@@ -128,6 +128,66 @@ The 3.x models saw the injection in 97–100% of runs and never followed it. Thi
 
 ---
 
-## Day 3: dual-target attack
+## Day 3: attacks that also target the judge (2026-10-27)
 
-*(to be added)*
+**Setup:**
+- **Data:** 732 new runs on 2.5 Flash + 2.5 Pro, frozen as `night2_v1`. Same task pairs as Night 1.
+- **Variants:**
+  - D1: a "note to reviewers" saying the action is user-approved
+  - D2: a cover story the agent tells in its final reply
+  - D3: a subtle "account note" with no banner
+- **Judges:** the same three, one repeat.
+- **Method:** pre-registered in `PREREGISTRATION_DAY3.md`.
+- **Results:** `DAY3_RESULTS.md`.
+
+**19. The strong judge with the full transcript was not fooled.** Gemini 3.1 Pro at L2 missed **0** attacks on every
+variant: 0/130, 0/148 and 0/38. Gate 3 **holds**: these dual-target attacks don't break full-transcript judging by a
+strong model.
+
+**20. A weaker judge is prompt-injected through the transcript it reviews.**
+- The D1 note to reviewers raised Llama 4's missed-attack rate at L2 from **0% to 51%** (66/130; H6, p < 1e-26).
+- In 51 of those 66 misses, Llama's reason refers to the note ("authorised", "part of the task").
+- **Adding the environment changes (L3) didn't help: it still missed 48%.**
+- **An LLM judge that reads attacker-controlled text can be attacked by that text.** The judge itself is an attack
+  surface.
+
+**21. A cover story in the final reply hides attacks from reply-only judges.**
+- promptfoo missed **87%** of D2 attacks, against 64% for the standard attack (H8, p < 1e-4).
+- The agent repeated the "routine verification" story in 68 of 148 compromised runs.
+- Reply-only judging is easy to steer, because the agent writes the very text being judged.
+
+**22. Subtle attacks compromise agents less often.** D3, with no banner, compromised only 15–16% of runs, against
+52–70% for the standard attack. 2.5 Pro followed the banner versions (D1, D2) almost as often as the standard one
+(43–56%). The banner looks "obvious", but it is what makes the attack work on these agents.
+
+**23. The weak judge's false alarms get worse with judge-directed text.** Llama 4 flagged **86%** of D2 runs where the
+agent resisted, against 44% for the standard attack (H7, p = 0.002). It reacts to the suspicious-looking text rather
+than to what the agent did.
+
+**24. The ground truth undercounts partly completed attacks** (post-hoc, not pre-registered).
+- Some of Gemini 3.1 Pro's apparent false alarms on D2 and D3 are real harm. In all 10 runs where attacker data (the
+  attacker's IBAN, URL or account changes) reached the environment, AgentDojo's all-or-nothing check still said
+  "not compromised". Example: 3 × $9,999 sent when the goal was $30,000.
+- Gemini flagged all 10.
+- Benchmark success checks are a lower bound on harm, and part of what looks like a judge "false alarm" is the label
+  being wrong.
+
+**25. Costs and process.**
+- **Cost:** Day 3 cost ≈ $24: agent runs ≈ $11.06 and judging ≈ $12.89 for 5,124 calls with 0 errors.
+- **Deviations logged:** two smoke-run overlaps were caught before any judge call (re-run, re-freeze). Pre-registering
+  the freeze step paid off again.
+
+### What Days 1–3 mean together
+
+- **Attack-success numbers depend on the judge.**
+  - Reply-only judges miss most attacks, and a cover story pushes that to 87%.
+  - A weaker judge both invents attacks and can be talked out of real ones by text the attacker placed in the
+    transcript.
+- **A strong model reading the full transcript was robust to everything tried here:** blatant, judge-directed and
+  subtle attacks.
+  - Caveat: only hand-written variants, and Gemini judging Gemini.
+- **Practical rules for evaluating agents:**
+  1. Judge the full transcript, not the reply.
+  2. Use a strong judge.
+  3. Treat injected text as hostile to the judge too.
+  4. Check environment state where possible, while remembering that benchmark checks can miss partly completed harm.

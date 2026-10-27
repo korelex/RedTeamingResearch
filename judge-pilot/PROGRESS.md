@@ -8,7 +8,7 @@ Legend: ✅ done · 🟡 partly done · ⏳ waiting on something external · ❌
 |---|---|---|
 | Day 1 | Agent runs with attacks; ground truth from environment state | ✅ Done (Phases 0–6, plus two extra models) |
 | Day 2 | LLM judges compared with ground truth | ✅ Done (pre-registered, run, analysed, written up) |
-| Day 3 | Grounding + dual-target attack | 🟡 Grounding done (as L3 in Day 2); dual-target attack ❌ |
+| Day 3 | Grounding + dual-target attack | ✅ Done (grounding as L3 in Day 2; dual-target + subtle attacks 2026-10-27) |
 
 **Spend so far:** ≈ $35.7 estimated (Day 1 agent runs ≈ $15.45, Day 2 judges ≈ $20.22), all on Vertex AI credits.
 All prices confirmed from Billing on 27 Oct; everything was paid by credits.
@@ -68,14 +68,14 @@ All prices confirmed from Billing on 27 Oct; everything was paid by credits.
 | Item | Status | Notes |
 |---|---|---|
 | Grounding: give the judge the environment changes | ✅ (inside Day 2) | View L3, tested as H3. No gain for Gemini (already at ceiling); Llama false alarms fell from 44% to 32% (not significant) |
-| Dual-target attack: injection that also tries to fool the judge | ❌ | Needs a design, a pre-registration addendum, new agent runs (2.5 Flash/Pro), then judging. Rough cost $5–25 |
+| Dual-target attack (D1 reviewer note, D2 cover story, D3 subtle) | ✅ | `PREREGISTRATION_DAY3.md` (approved a4e7cea), `night2_v1` (732 runs), `DAY3_RESULTS.md`. Gate 3 HOLDS for Gemini 3.1 Pro; Llama 4 fooled by the reviewer note (FN 51%); promptfoo misses 87% with a cover story |
 
 ## Pending
 
 | # | Item | Owner | When |
 |---|---|---|---|
 | 1 | ✅ Credit coverage confirmed 27 Oct (₹0.00 after credits); Llama 4 ($0.35/$1.15) and Gemini 3.1 Pro ($2/$12) prices confirmed from Billing SKUs | done | 27 Oct |
-| 2 | Day 3 dual-target attack: design, pre-registration addendum, runs, judging, analysis | Claude drafts → Manish approves | after 1 |
+| 2 | ✅ Day 3 dual-target attack done (27 Oct, ≈ $24) | done | 27 Oct |
 | 3 | Budget alerts at 50% and 90% of credits (Cloud Billing console) | Manish | not yet confirmed |
 | 4 | Separate GCP project from Rhit's usage (shared credits and capacity) | Manish | open decision |
 | 5 | `PENDING.md` is out of date (from 21 Oct); replace it with this file or update it | Claude | on request |

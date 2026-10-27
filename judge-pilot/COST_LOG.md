@@ -317,3 +317,14 @@ estimate and bill agree within 0–9%. The project's 15-day bill (≈ ₹6,288, 
 ≈ 45% other usage, mainly Gemini 3.8 Flash, Gemini 3 Flash and extra Gemini 2.5 Pro.
 To split 2.5 Pro and 3.8 Flash by user exactly: `python -m src.project_usage --start 2026-10-22T00:00:00Z`
 (needs a fresh ADC login).
+
+## Day 3 (2026-10-27, estimated from logged tokens; prices confirmed from Billing)
+
+| Item | Calls / runs | Errors | Cost |
+|---|---|---|---|
+| Agent smoke (`smoke_day3_flash`, `smoke_day3_pro`) | 12 | 0 | $0.19 |
+| Agent runs (`night2_flash`, `night2_pro`, incl. retries and smoke-overlap re-runs) | 732 | 0 final (12 malformed, retried) | $10.87 |
+| Judging (`judge_day3`, 3 judges, 1 repeat) | 5,124 | 0 | $12.89 |
+| **Day 3 total** | | | **≈ $23.95** |
+
+Cumulative: agent runs $26.67 (cap $45), judging $32.90 (cap $60), pilot total ≈ $59.6.
