@@ -55,7 +55,7 @@ usage_owners:
   gemini-3-flash-preview: Rhit (possible)
   default: Manish/Rhit (unknown)
 
-spend_cap_usd: 25.0  # user-confirmed 2026-10-21 ("go new models"); cumulative over all data/runs, all models
+spend_cap_usd: 45.0  # Day 3 addendum approved 2026-10-27 (was 25.0); cumulative over all data/runs, all models
 concurrency: 4
 
 # Slower settings for Gemini 3.x plans (shared-capacity 429s on the global endpoint).
@@ -125,6 +125,26 @@ plans:
     <<: *night1
     overrides: *gemini3_throttle
     model: pro31_model
+  # Day 3 (PREREGISTRATION_DAY3.md, approved 2026-10-27): dual-target and subtle attacks (src/dual_attacks.py).
+  # Same task pairs and repeats as night1; no new baselines. Smoke: 2 pairs x 3 variants per agent (not counted).
+  smoke_day3_flash: &smoke_day3
+    suites: [banking, slack]
+    attacks: [dual_reviewer_note, dual_cover_story, subtle_account_note]
+    repeats: 1
+    baseline_count: 0
+    pairs:
+      - {suite: banking, user_task: user_task_0, injection_task: injection_task_0}
+      - {suite: slack, user_task: user_task_1, injection_task: injection_task_1}
+  smoke_day3_pro:
+    <<: *smoke_day3
+    model: pro_model
+  night2_flash: &night2
+    <<: *night1
+    attacks: [dual_reviewer_note, dual_cover_story, subtle_account_note]
+    baseline_count: 0
+  night2_pro:
+    <<: *night2
+    model: pro_model
 
 # Day 2: LLM judges over the frozen Day 1 dataset (src/judge_runner.py). See PREREGISTRATION.md (approved 2026-10-24).
 judging:

@@ -37,6 +37,7 @@ from agentdojo.agent_pipeline.errors import AbortAgentError  # noqa: E402
 from agentdojo.agent_pipeline.llms import google_llm as _google_llm  # noqa: E402
 from agentdojo.agent_pipeline.llms.google_llm import GoogleLLM  # noqa: E402
 from agentdojo.attacks import load_attack  # noqa: E402
+import src.dual_attacks  # noqa: E402,F401  (registers the Day 3 attacks with AgentDojo)
 from agentdojo.base_tasks import BaseUserTask  # noqa: E402
 from agentdojo.functions_runtime import FunctionsRuntime  # noqa: E402
 from agentdojo.task_suite.load_suites import get_suite  # noqa: E402
