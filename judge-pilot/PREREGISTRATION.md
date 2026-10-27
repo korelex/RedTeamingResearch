@@ -159,5 +159,7 @@ RECORD:
 2. **2026-10-24: Llama 4 credit coverage checked after the full run, not before (§6).** Billing data for 24 Oct is not
    yet available. Approved by Manish; the risk accepted is about $3 for the Llama judge if credits do not cover it.
    Coverage is confirmed from the 25 Oct Billing SKU data.
+   **Resolved 2026-10-27:** Billing overview for 1–27 Oct shows cost ₹6.35k fully offset by credits (total ₹0.00),
+   so the Llama 4 calls were covered (`COST_LOG.md`).
 3. **2026-10-24: smoke-test judgements kept out of the full run.** Smoke judgement IDs equal full-run repeat-0 IDs, so
    the smoke log was moved to `data/judgements_smoke/` and every full-run judgement is a fresh call.

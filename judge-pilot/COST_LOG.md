@@ -265,3 +265,12 @@ The exchange rate implied by the SKU prices is **₹96 = $1**.
 
 Llama 4 and Gemini 3.1 Pro prices are UNCONFIRMED; check both SKUs and credit coverage in Billing on 25 Oct
 (PREREGISTRATION.md deviation 2).
+
+## Credit coverage confirmed (Billing overview, screenshot 2026-10-27 15:43 IST)
+
+Billing → Overview, "Your total cost (1–27 October 2026)": **Cost ₹6.35k − Savings ₹6.35k = Total cost ₹0.00**;
+forecast ₹0.00. Every October charge, including the Day 2 judge run on 24 Oct (Llama 4 Maverick, Gemini 3.1 Pro,
+Gemini 2.5 Flash), was paid by credits. This closes PREREGISTRATION.md deviation 2.
+Still open: per-SKU prices for Llama 4 Maverick and Gemini 3.1 Pro (needs Reports grouped by SKU or the CSV).
+October usage rose from ₹2,786.62 (21 Oct) to ≈ ₹6.35k (27 Oct); the pilot's estimate for that period is ≈ $31
+(Day 1 Gemini 3.x runs ≈ $11, Day 2 judges ≈ $20), the rest is other usage on the shared project.

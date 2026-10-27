@@ -74,7 +74,7 @@ Some prices are still unconfirmed.
 
 | # | Item | Owner | When |
 |---|---|---|---|
-| 1 | Billing SKU check for 24 Oct: Llama 4 covered by credits? Confirm Llama 4 ($0.35/$1.15) and Gemini 3.1 Pro ($2/$12) prices | Manish (screenshot or CSV) → Claude updates `COST_LOG.md`, `config.yaml` | 25 Oct |
+| 1 | ✅ Credit coverage confirmed 27 Oct (₹6.35k cost, ₹0.00 after credits). Still open: per-SKU prices for Llama 4 ($0.35/$1.15) and Gemini 3.1 Pro ($2/$12) | Manish (Reports by SKU or CSV) → Claude updates `config.yaml` | optional |
 | 2 | Day 3 dual-target attack: design, pre-registration addendum, runs, judging, analysis | Claude drafts → Manish approves | after 1 |
 | 3 | Budget alerts at 50% and 90% of credits (Cloud Billing console) | Manish | not yet confirmed |
 | 4 | Separate GCP project from Rhit's usage (shared credits and capacity) | Manish | open decision |
