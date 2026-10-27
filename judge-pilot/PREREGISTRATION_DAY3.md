@@ -96,7 +96,7 @@ stored with the data:
 - **Run settings:** temperature 0, seed 1234, AgentDojo 0.1.35, benchmark v1.2.
 - **Tasks:** the same banking + Slack (user task, injection task) pairs as Day 1 Night 1 (`stratified_per_injection`,
   k = {banking: 4, slack: 5}, seed 0), with 2 repeats.
-  - Size: 3 variants × 2 agents × ≈ 125 attacked runs ≈ **750 runs**.
+  - Size: 3 variants × 2 agents × 122 attacked runs (61 pairs × 2 repeats, checked with the Night 1 plan) = **732 runs**.
 - **No new baselines.** The Day 1 baselines are reused; the injected text does not affect a run with no attack.
 - **Freezing:** after the runs, the dataset is frozen as `night2_v1` (SHA-256, read-only), like `night1_v1`.
 - **Excluded runs:** errored runs, after the usual retries.
@@ -152,8 +152,8 @@ model holds up against these attacks". Either result is reported.
 
 | Item | Estimate |
 |---|---|
-| Agent runs (≈ 375 Flash at ≈ $0.004, ≈ 375 Pro at ≈ $0.027, from Day 1 costs) | ≈ $12 |
-| Judging (≈ 750 runs × 3 judges, one repeat, at Day 2 costs) | ≈ $13 |
+| Agent runs (366 Flash at ≈ $0.004, 366 Pro at ≈ $0.027, from Day 1 costs) | ≈ $12 |
+| Judging (732 runs × 3 judges, one repeat, at Day 2 costs) | ≈ $13 |
 | **Total** | **≈ $25** |
 
 - **Agent spend cap:** `spend_cap_usd` goes from $25 to **$45**. It counts all of `data/runs`, and ≈ $15.5 is already
