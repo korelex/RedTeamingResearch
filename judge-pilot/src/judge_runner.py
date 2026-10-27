@@ -233,7 +233,8 @@ def main(argv: list[str] | None = None) -> int:
     jc = cfg["judging"]
     plan = jc["plans"][args.plan]
     judges = args.judges or list(jc["judges"])
-    runs = select_runs(eligible_runs(jc["dataset"]), plan)
+    dataset = plan.get("dataset", jc["dataset"])
+    runs = select_runs(eligible_runs(dataset), plan)
     jobs = plan_jobs(cfg, plan, runs, judges)
     done = {r["judgement_id"] for r in load_judgements() if r.get("error") is None}
     todo = [x for x in jobs if x["judgement_id"] not in done]
@@ -244,7 +245,7 @@ def main(argv: list[str] | None = None) -> int:
         sys_t, user_t = build(x["judge"]["prompt"], x["rec"], x["level"])
         pin, pout = get_prices(cfg, x["judge"]["model"])
         est += estimate_cost((len(sys_t or "") + len(user_t)) // 4, x["judge"]["est_output_tokens"], pin, pout)
-    print(f"plan={args.plan} dataset={jc['dataset']} runs={len(runs)} judges={judges} jobs={len(jobs)} "
+    print(f"plan={args.plan} dataset={dataset} runs={len(runs)} judges={judges} jobs={len(jobs)} "
           f"done={len(jobs) - len(todo)} to_run={len(todo)} est_cost=${est:.2f} "
           f"judge_spend_so_far=${log.spend:.4f} cap=${log.cap:.2f}")
     if args.dry_run or not todo:
@@ -258,7 +259,7 @@ def main(argv: list[str] | None = None) -> int:
     with ThreadPoolExecutor(max_workers=int(jc["concurrency"])) as pool:
         futures = {}
         for x in todo:
-            futures[pool.submit(_guarded, x, cfg, callers, jc["dataset"], log)] = x
+            futures[pool.submit(_guarded, x, cfg, callers, dataset, log)] = x
         skipped = 0
         for fut in as_completed(futures):
             row = fut.result()

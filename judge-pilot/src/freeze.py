@@ -76,7 +76,8 @@ def load_frozen(name: str = "night1_v1", root: Path = FROZEN_ROOT) -> list[dict]
         return [json.loads(line) for line in f if line.strip()]
 
 
-def freeze(name: str, runs_dir: Path, config: Path) -> Path:
+def freeze(name: str, runs_dir: Path, config: Path, attacks: list[str] | None = None) -> Path:
+    """attacks: keep only runs with these attack names in runs.jsonl (raw/ still holds every log line)."""
     dest = FROZEN_ROOT / name
     if dest.exists():
         raise SystemExit(f"{dest} already exists; a frozen dataset is never overwritten. Use a new --name.")
@@ -87,6 +88,8 @@ def freeze(name: str, runs_dir: Path, config: Path) -> Path:
     shutil.copy2(config, dest / "config.yaml")
 
     runs = sorted(dedupe_runs(load_records(str(runs_dir))), key=lambda r: str(r["run_id"]))
+    if attacks:
+        runs = [r for r in runs if r.get("attack") in attacks]
     with open(dest / "runs.jsonl", "w", encoding="utf-8") as f:
         for r in runs:
             f.write(json.dumps(r, ensure_ascii=False, sort_keys=True) + "\n")
@@ -108,6 +111,7 @@ def freeze(name: str, runs_dir: Path, config: Path) -> Path:
         f"- Frozen at: {datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')}",
         f"- Code commit: {_git_commit()}",
         f"- Source: `{runs_dir}/*.jsonl` ({len(raw_files)} files; `.jsonl.bak` backups excluded)",
+        *([f"- Attack filter: {', '.join(attacks)} (raw/ keeps every log line)"] if attacks else []),
         f"- Canonical file: `runs.jsonl`, {len(runs)} unique run_ids ({len(done)} completed, "
         f"{len(runs) - len(done)} errored), last successful line per run_id, sorted by run_id",
         f"- runs.jsonl sha256: `{sha256(dest / 'runs.jsonl')}`",
@@ -139,12 +143,13 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--runs-dir", default="data/runs")
     ap.add_argument("--config", default="config.yaml")
     ap.add_argument("--verify", action="store_true")
+    ap.add_argument("--attacks", nargs="+", help="keep only runs with these attack names (e.g. the Day 3 variants)")
     args = ap.parse_args(argv)
     if args.verify:
         problems = verify(FROZEN_ROOT / args.name)
         print("OK: all hashes match" if not problems else "\n".join(problems))
         return 1 if problems else 0
-    dest = freeze(args.name, Path(args.runs_dir), Path(args.config))
+    dest = freeze(args.name, Path(args.runs_dir), Path(args.config), args.attacks)
     print((dest / "MANIFEST.md").read_text())
     return 0
 

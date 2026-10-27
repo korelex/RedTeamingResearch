@@ -183,3 +183,6 @@ judging:
       repeats: 1
     judge_full:
       repeats: 2
+    judge_day3:  # PREREGISTRATION_DAY3.md: frozen Day 3 runs, repeat 0 only
+      dataset: night2_v1
+      repeats: 1
