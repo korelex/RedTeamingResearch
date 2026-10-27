@@ -43,7 +43,7 @@ pricing:
   gemini-3-flash-preview:  # cached input 0.05
     input_per_mtok: 0.50
     output_per_mtok: 3.00
-  meta/llama-4-maverick-17b-128e-instruct-maas:  # UNCONFIRMED (model card pricing link); confirm from Billing SKUs (25 Oct)
+  meta/llama-4-maverick-17b-128e-instruct-maas:  # CONFIRMED 2026-10-27 from Billing SKUs (₹86.05 / ₹21.81 at ₹96 per $)
     input_per_mtok: 0.35
     output_per_mtok: 1.15
 

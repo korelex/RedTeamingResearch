@@ -274,3 +274,14 @@ Gemini 2.5 Flash), was paid by credits. This closes PREREGISTRATION.md deviation
 Still open: per-SKU prices for Llama 4 Maverick and Gemini 3.1 Pro (needs Reports grouped by SKU or the CSV).
 October usage rose from ₹2,786.62 (21 Oct) to ≈ ₹6.35k (27 Oct); the pilot's estimate for that period is ≈ $31
 (Day 1 Gemini 3.x runs ≈ $11, Day 2 judges ≈ $20), the rest is other usage on the shared project.
+
+## Llama 4 Maverick price confirmed (Billing → Reports by SKU, last 15 days, screenshot 2026-10-27 15:47 IST)
+
+| SKU | Billed | Credits | Our tokens (smoke + full + test call) | Implied price at ₹96/$ | config.yaml |
+|---|---|---|---|---|---|
+| Cloud Vertex AI Model Garden MaaS Llama 4 Maverick Input Tokens (AD03-50E7-3706) | ₹86.05 | −₹86.05 | 2,561,299 | **$0.350 / M** | $0.35 ✅ |
+| Llama 4 Maverick Output Tokens (7516-25FC-9009) | ₹21.81 | −₹21.81 | 197,534 | **$1.150 / M** | $1.15 ✅ |
+
+Llama 4 total ₹107.86 ≈ $1.12, matching our estimate ($1.11 full + $0.011 smoke); fully paid by credits. The ₹96/$
+rate is the one implied by the earlier SKU reconciliation (₹2,520.58 = $26.26). Gemini 3.1 Pro SKUs were not in the
+visible part of the report; its price ($2 / $12) is still unconfirmed.
