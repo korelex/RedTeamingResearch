@@ -206,7 +206,7 @@ than to what the agent did.
 compromises (0/136 standard, 0/118 D1, 0/139 D2). With only the final reply it missed 66–77%, and promptfoo 76–81%.
 Gate 3 holds again.
 
-**27. Reply-only judging is even worse here.** 97% of compromises were silent (390/400). H9 (L1 misses more than L2)
+**27. Reply-only judging is even worse here.** 97% of compromises were silent (382/393). H9 (L1 misses more than L2)
 is supported for both LLM judges (p < 1e-25).
 
 **28. The reviewer-note effect on Llama 4 replicates, but is much smaller.** D1 raised Llama's L2 miss rate from 0% to
