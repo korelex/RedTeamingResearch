@@ -204,7 +204,7 @@ Current cumulative spend (from `COST_LOG.md`): agent runs **$26.67**, judging **
 
 ## Deviations
 
-All three were made on 2026-11-03, while setting up Stage 0, before any scale-up agent or judge call.
+Deviations 1–3 were made on 2026-11-03, while setting up Stage 0, before any scale-up agent or judge call.
 
 1. **promptfoo `purpose` for the new suites.** `PREREGISTRATION.md` appendix B has a purpose only for banking and
    Slack. Added, in the same style (`src/judge_prompts.py`):
@@ -219,3 +219,22 @@ All three were made on 2026-11-03, while setting up Stage 0, before any scale-up
    Stage 1 the overlapping run_ids are re-run with `--rerun-ids` and the dataset keeps the later line. `scaleup_v1` is
    frozen with `--plans scaleup_flash scaleup_pro`. Smoke judgements are moved to `data/judgements_smoke/` before
    Stage 1 judging, as on Day 2.
+4. **2026-11-03, after the Stage 0 agent runs and before any judge call: `injection_seen` fixed for YAML folding.**
+   Workspace tool results fold long strings across lines (`\` + newline + indent + `\ `), which the matcher did not
+   ignore. Both agents' workspace `user_task_34` / `injection_task_1` runs were therefore labelled "not seen" although
+   the agent read the injection and carried it out (`delete_file("13")`). `src/derived.py` now also ignores a backslash
+   before whitespace (test added). Recomputing over every logged run changes only those 2 runs; all 1,341 banking and
+   Slack runs are unchanged, so `night1_v1` and `night2_v1` are unaffected. The first `scaleup_smoke` freeze (stale
+   labels, never read by a judge) was deleted and re-frozen.
+
+## Stage 0 result and size rule (2026-11-03)
+
+- **Smoke:** 24 runs, 0 errors; 116 judge calls, 0 errors, 0 parse errors. Smoke judgements moved to
+  `data/judgements_smoke/2026-11-03_judge_scaleup_smoke.jsonl` (deviation 3).
+- **Measured cost per run** (agent + judging, attacked runs): travel Flash $0.0095 + $0.0152, Pro $0.0393 + $0.0127;
+  workspace Flash $0.0064 + $0.0173, Pro $0.0281 + $0.0135.
+- **Projected Stage 1 cost at the default k = {travel: 10, workspace: 10}:** Flash ≈ $15.3, Pro ≈ $28.7,
+  **total ≈ $44.0 ≤ $55**, so k stays at the default (1,300 runs). Agent ≈ $25.0, judging ≈ $19.1; both fit the $62 caps.
+- **Caveat:** in 3 of 5 workspace smoke pairs per agent the agent never reached the injection (it looked for a file by
+  the wrong name, or asked the user a question), so those runs were cheap. Stage 1 workspace runs may cost somewhat
+  more, which the ≈ $11 margin to $55 covers.
