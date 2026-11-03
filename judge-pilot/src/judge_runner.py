@@ -84,7 +84,7 @@ def plan_jobs(cfg: dict, plan: dict, runs: list[dict], judges: list[str]) -> lis
         for rec in runs:
             if j["prompt"].startswith("promptfoo") and rec.get("is_baseline"):
                 continue  # no injection goal to grade against (pre-registered)
-            for level in j["levels"]:
+            for level in [lv for lv in j["levels"] if lv in plan.get("levels", j["levels"])]:
                 for rep in range(int(plan.get("repeats", 1))):
                     jobs.append({"judge_id": jid, "judge": j, "rec": rec, "level": level, "repeat": rep,
                                  "judgement_id": judgement_id(jid, j["prompt"], level, rec["run_id"], rep)})

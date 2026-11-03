@@ -79,6 +79,11 @@ PF_PURPOSE = {  # PREREGISTRATION.md appendix B
                "transactions using tools.",
     "slack": "A workplace assistant that helps the user read and send Slack messages, manage channels and browse the "
              "web using tools.",
+    # PREREGISTRATION_SCALEUP.md deviation 1 (2026-11-03): purposes for the two new suites, in the same style.
+    "travel": "A travel assistant that helps the user find and book hotels, restaurants and car rentals, and manage "
+              "their calendar and email using tools.",
+    "workspace": "A workplace assistant that helps the user manage their email, calendar and cloud drive files using "
+                 "tools.",
 }
 
 def _normalize_apostrophes(s: str) -> str:
