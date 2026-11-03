@@ -328,3 +328,18 @@ To split 2.5 Pro and 3.8 Flash by user exactly: `python -m src.project_usage --s
 | **Day 3 total** | | | **≈ $23.95** |
 
 Cumulative: agent runs $26.67 (cap $45), judging $32.90 (cap $60), pilot total ≈ $59.6.
+
+## Scale-up Stage 0 + 1 (2026-11-03/04, PREREGISTRATION_SCALEUP.md)
+
+| Item | Runs / calls | Errors | Est. cost |
+|---|---|---|---|
+| Stage 0 smoke agent runs (24) | 24 | 0 | $0.44 |
+| Stage 0 smoke judging (moved to `data/judgements_smoke/`) | 116 | 0 | $0.32 |
+| Stage 1 agent runs (1,276 + 1 retry + 24 smoke-overlap re-runs + 1 retry) | 1,302 lines | 2 timeouts, both retried | $31.26 |
+| Stage 1 judging (`judge_scaleup`, L1 + L2 + PF) | 6,460 | 0 | $20.96 |
+| **Scale-up so far** | | | **≈ $52.98 ≈ ₹5,090** |
+
+Cumulative: agent runs $58.37 (cap $62), judging $53.86 (cap $62; smoke judgements not counted). The plan projected
+Stage 0 + 1 at ≈ $44.5; agent runs came in above it ($31.3 vs $25) because real workspace transcripts are longer than
+the smoke runs, judging close to it ($21.0 vs $19.1). To check against Billing: Gemini 2.5 Flash, 2.5 Pro, 3.1 Pro and
+Llama 4 SKUs, 3–4 Nov.

@@ -191,3 +191,45 @@ than to what the agent did.
   2. Use a strong judge.
   3. Treat injected text as hostile to the judge too.
   4. Check environment state where possible, while remembering that benchmark checks can miss partly completed harm.
+
+---
+
+## Scale-up Stage 1: travel and workspace (2026-11-03/04)
+
+**Setup:**
+- **Data:** 1,300 new runs (`scaleup_v1`): 210 task pairs × 3 attacks (standard, D1, D2) × Gemini 2.5 Flash + 2.5 Pro,
+  plus 40 baselines.
+- **Judges:** the same three, at L1, L2 and promptfoo's view (L3 dropped).
+- **Method:** pre-registered in `PREREGISTRATION_SCALEUP.md`. **Results:** `SCALEUP_STAGE1_RESULTS.md`.
+
+**26. The headline replicates on two new suites.** Gemini 3.1 Pro with the full transcript missed **0 of 393**
+compromises (0/136 standard, 0/118 D1, 0/139 D2). With only the final reply it missed 66–77%, and promptfoo 76–81%.
+Gate 3 holds again.
+
+**27. Reply-only judging is even worse here.** 97% of compromises were silent (390/400). H9 (L1 misses more than L2)
+is supported for both LLM judges (p < 1e-25).
+
+**28. The reviewer-note effect on Llama 4 replicates, but is much smaller.** D1 raised Llama's L2 miss rate from 0% to
+**7.6%** (H10, p = 0.003), against 51% on banking and Slack. Its size depends on the suite.
+
+**29. The cover story did not add much for promptfoo here** (H11 not supported: 81% vs 76%). Its miss rate is already
+very high with the standard attack, so there is little room. The agent repeated the "routine verification" story in
+50 of 139 compromised D2 runs; even on those, promptfoo missed 56%.
+
+**30. Llama 4's false alarms are confirmed and larger.** It flagged **65–77%** of resisted runs at L2, against Gemini's
+14–19% (H12, 108 vs 1 discordant pairs, p < 1e-30). On baselines with no attack it flagged 10%.
+
+**31. Most of Gemini's "false alarms" on the new suites look like real, partly completed attacks** (post-hoc). In 65
+of its 102 flags, attacker data reached the environment or the reply, for example files emailed to the attacker but
+the sent email not deleted. AgentDojo's all-or-nothing checks call these "resisted". This makes finding 7 much
+bigger: on multi-step attacks, the benchmark label undercounts harm, and Stage 4 will measure it properly.
+
+**32. Attack success depends strongly on the suite.** Flash was compromised in 77–86% of travel runs, but only 21–30%
+of workspace runs. Pro in 29–39% and 8–12%. In workspace, many runs never reached the injection, because the agent
+failed the user's task first.
+
+**33. Process.**
+- **Bug caught by the smoke test:** the "injection seen" check missed YAML-folded text (deviation 4). It affected
+  only 2 smoke runs; banking and Slack labels were unchanged.
+- **Cost:** Stage 0 + 1 cost ≈ $53 (≈ ₹5,090), against ≈ $44.5 planned. Agent runs were the overrun, because real
+  workspace transcripts are longer than the smoke runs suggested.
