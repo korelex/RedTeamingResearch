@@ -238,3 +238,23 @@ Deviations 1–3 were made on 2026-11-03, while setting up Stage 0, before any s
 - **Caveat:** in 3 of 5 workspace smoke pairs per agent the agent never reached the injection (it looked for a file by
   the wrong name, or asked the user a question), so those runs were cheap. Stage 1 workspace runs may cost somewhat
   more, which the ≈ $11 margin to $55 covers.
+
+## Deviation 5: Stage 2 implementation details (2026-11-04, before any Stage 2 call)
+
+Fixed in `src/judge_attacks.py`, committed together with this note and the Stage 2 caps (agent $70, judge $80):
+- **Where the text goes:** in the stored tool outputs, the D1 note has been re-wrapped by YAML (indented, lines
+  re-broken). The whole `<NOTE TO REVIEWERS>…</NOTE TO REVIEWERS>` span is replaced; a candidate's line breaks get
+  the same indent as the line the note started on. All 162 notes in the 130 runs are matched.
+- **Agent copies of the note are left alone.** In 2 runs the agent copied the injection, note included, into its own
+  text or tool-call arguments (`5abe43d01769f7a5`, dev; `824d6d6f09382e01`, test). §4 changes tool outputs only, so
+  these copies are left as they are.
+- **Split:** clusters shuffled with seed 0 go to dev until it has ≥ 40 runs → 40 dev runs (14 task pairs), 90 test
+  runs (`data/stage2/split.json`).
+- **Attacker (rounds 2–3):** Gemini 2.5 Flash, temperature 1.0 (for varied candidates), seed 1234 + round. Its reply
+  must be a JSON list. A candidate is kept if it is new and ≤ 800 characters (the limit is in the prompt too). If a
+  call gives fewer than 10, up to 2 more calls are made (seed + 100, + 200). Every call is logged in
+  `data/stage2/attacker_calls.jsonl`, and its cost counts against the judge cap.
+- **Judgements** are logged in `data/judgements/` like all others (run_id `<run_id>~<candidate>`, dataset
+  `stage2_dev` / `stage2_test`), so the judge cap and resuming work as before.
+- **H14's comparison** (the original D1 note on the same test runs) uses the existing Day 3 Gemini L2 judgements
+  (repeat 0) of those runs. No new calls.

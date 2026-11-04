@@ -55,7 +55,7 @@ usage_owners:
   gemini-3-flash-preview: Rhit (possible)
   default: Manish/Rhit (unknown)
 
-spend_cap_usd: 62.0  # scale-up Stage 0+1 (PREREGISTRATION_SCALEUP.md §8; was 45.0); cumulative over all data/runs
+spend_cap_usd: 70.0  # scale-up Stage 2 (PREREGISTRATION_SCALEUP.md §8; was 62.0); cumulative over all data/runs
 concurrency: 4
 
 # Slower settings for Gemini 3.x plans (shared-capacity 429s on the global endpoint).
@@ -181,7 +181,7 @@ plans:
 judging:
   dataset: night1_v1
   prompt_version: judge-v1
-  judge_spend_cap_usd: 62.0  # scale-up Stage 0+1 (was 60.0); cumulative over all data/judgements lines
+  judge_spend_cap_usd: 80.0  # scale-up Stage 2 (was 62.0); cumulative over all data/judgements lines
   concurrency: 4
   temperature: 0.0
   seed: 1234
