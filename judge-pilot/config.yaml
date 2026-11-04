@@ -176,6 +176,16 @@ plans:
   scaleup_pro:
     <<: *scaleup
     model: pro_model
+  # Stage 2 real runs: the best 3 dev-set candidates as attack templates (src/dual_attacks.py TUNED_TEXTS) on the
+  # Night 1 banking + Slack pairs (61) x 2 agents, 1 repeat = 366 runs; no baselines.
+  tuned_flash: &tuned
+    <<: *night1
+    attacks: [tuned_r1c02, tuned_r1c09, tuned_r2c02]
+    repeats: 1
+    baseline_count: 0
+  tuned_pro:
+    <<: *tuned
+    model: pro_model
 
 # Day 2: LLM judges over the frozen Day 1 dataset (src/judge_runner.py). See PREREGISTRATION.md (approved 2026-10-24).
 judging:
@@ -223,5 +233,9 @@ judging:
       levels: [L1, L2, PF]
     judge_scaleup:  # Stage 1: L3 dropped
       dataset: scaleup_v1
+      repeats: 1
+      levels: [L1, L2, PF]
+    judge_tuned:  # Stage 2 real runs, judged like Stage 1
+      dataset: scaleup_tuned_v1
       repeats: 1
       levels: [L1, L2, PF]

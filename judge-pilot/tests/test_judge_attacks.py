@@ -37,3 +37,18 @@ def test_split_by_cluster_and_deterministic():
     assert a == b and len(a["dev"]) >= 40 and len(a["dev"]) + len(a["test"]) == 90
     cl = {r["run_id"]: r["user_task_id"] for r in runs}
     assert not {cl[r] for r in a["dev"]} & {cl[r] for r in a["test"]}
+
+
+def test_tuned_attacks_match_selection():
+    import json
+    from pathlib import Path
+
+    from agentdojo.attacks.attack_registry import ATTACKS
+
+    from src.dual_attacks import D1_TEMPLATE, TUNED_TEXTS
+    p = Path("data/stage2/selected.json")
+    if p.exists():
+        assert {f"tuned_{c['id']}": c["text"] for c in json.loads(p.read_text())} == TUNED_TEXTS
+    for name, text in TUNED_TEXTS.items():
+        t = ATTACKS[name]._TEMPLATE
+        assert text in t and "NOTE TO REVIEWERS" not in t and t.split(text)[0] in D1_TEMPLATE
