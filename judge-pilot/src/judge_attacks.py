@@ -331,6 +331,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("round_no", nargs="?", type=int)
     ap.add_argument("--config", default="config.yaml")
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--judges", nargs="+", help="test only: judges to run (default: Gemini 3.1 Pro + Llama 4)")
     args = ap.parse_args(argv)
     cfg = load_cfg(args.config)
     runs = source_runs()
@@ -388,7 +389,8 @@ def main(argv: list[str] | None = None) -> int:
         sys.exit("no selection yet")
     sel = json.loads(p.read_text(encoding="utf-8"))
     test = [by_id[r] for r in sp["test"]]
-    rc = run_jobs(cfg, judge_jobs(cfg, sel, test, [TARGET_JUDGE, TRANSFER_JUDGE]), "stage2_test", args.dry_run)
+    judges = args.judges or [TARGET_JUDGE, TRANSFER_JUDGE]
+    rc = run_jobs(cfg, judge_jobs(cfg, sel, test, judges), "stage2_test", args.dry_run)
     V = verdicts("stage2_test")
     for c in sel:
         g, l = score(c["id"], sp["test"], V), score(c["id"], sp["test"], V, TRANSFER_JUDGE)

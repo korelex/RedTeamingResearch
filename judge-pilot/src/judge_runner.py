@@ -56,6 +56,8 @@ def eligible_runs(dataset: str) -> list[dict]:
 
 
 def select_runs(runs: list[dict], plan: dict) -> list[dict]:
+    if plan.get("buckets"):  # primary agents, these ground-truth buckets only (scale-up Stage 3)
+        runs = [r for r in runs if r["model_id"] in PRIMARY_AGENTS and bucket(r) in plan["buckets"]]
     sample = plan.get("sample")
     if not sample:
         return runs

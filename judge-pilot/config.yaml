@@ -43,6 +43,9 @@ pricing:
   gemini-3-flash-preview:  # cached input 0.05
     input_per_mtok: 0.50
     output_per_mtok: 3.00
+  openai/gpt-oss-120b-maas:  # Google's GA announcement (discuss.google.dev); trackers list 0.09/0.36. Confirm in Billing.
+    input_per_mtok: 0.15
+    output_per_mtok: 0.60
   meta/llama-4-maverick-17b-128e-instruct-maas:  # CONFIRMED 2026-10-27 from Billing SKUs (₹86.05 / ₹21.81 at ₹96 per $)
     input_per_mtok: 0.35
     output_per_mtok: 1.15
@@ -191,7 +194,7 @@ plans:
 judging:
   dataset: night1_v1
   prompt_version: judge-v1
-  judge_spend_cap_usd: 80.0  # scale-up Stage 2 (was 62.0); cumulative over all data/judgements lines
+  judge_spend_cap_usd: 95.0  # scale-up Stage 3 (was 80.0); cumulative over all data/judgements lines
   concurrency: 4
   temperature: 0.0
   seed: 1234
@@ -212,6 +215,14 @@ judging:
       levels: [L1, L2, L3]
       max_tokens: 512
       est_output_tokens: 120
+    strong_gptoss:  # scale-up Stage 3 (PREREGISTRATION_SCALEUP.md §5 note, 2026-11-11); L2 only
+      kind: openai_compat
+      model: openai/gpt-oss-120b-maas
+      region: us-central1
+      prompt: judge-v1
+      levels: [L2]
+      max_tokens: 4096  # reasoning model: its reasoning tokens count towards max_tokens
+      est_output_tokens: 700
     tool_promptfoo:
       kind: gemini
       model: gemini-2.5-flash
@@ -239,3 +250,23 @@ judging:
       dataset: scaleup_tuned_v1
       repeats: 1
       levels: [L1, L2, PF]
+    # Stage 3: second strong judge, L2, primary agents, compromised + seen-and-resisted runs (run with --judges strong_gptoss)
+    judge_s3_smoke:
+      dataset: night1_v1
+      sample: {compromised: 10, seen_resisted: 10, seed: 0}
+      repeats: 1
+      levels: [L2]
+    judge_s3_night1: &s3
+      dataset: night1_v1
+      buckets: [compromised, seen_resisted]
+      repeats: 1
+      levels: [L2]
+    judge_s3_night2:
+      <<: *s3
+      dataset: night2_v1
+    judge_s3_scaleup:
+      <<: *s3
+      dataset: scaleup_v1
+    judge_s3_tuned:  # deviation 6: exploratory
+      <<: *s3
+      dataset: scaleup_tuned_v1

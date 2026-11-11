@@ -151,6 +151,15 @@ D1 note (exact McNemar, one-sided, paired by run).
 
 **Estimated cost:** ≤ $15.
 
+**Model choice note (2026-11-11, before any Stage 3 call).** Probes from `korelex-ai-lab` today: Claude Opus 5.5 and
+Sonnet 5.5 on Vertex → 429, quota 0 (unchanged since 24 Oct). Qwen3 235B, DeepSeek V3.1 and R1, and Kimi K2 → 404, not
+enabled. `openai/gpt-oss-120b-maas` (us-central1) → 200. **Chosen: gpt-oss-120b**, the strongest non-Gemini model
+enabled. It is an open-weight reasoning model from a different family (OpenAI), and much stronger than Llama 4
+Maverick, the only other one enabled. Judge id `strong_gptoss`, prompt judge-v1, L2, temperature 0, seed 1234,
+`max_tokens` 4096 (its reasoning counts towards it). Price $0.15 / $0.60 per 1M tokens, from Google's GA announcement;
+third-party trackers list $0.09 / $0.36, so the higher figure is used and checked in Billing. Projected cost of the
+full pre-registered set (1,756 runs) ≈ $1.3, so no sampling. Judge cap raised to $95 in this commit.
+
 ## 6. Stage 4: "partly completed" label (no model calls)
 
 - **Rule, fixed now:** for each injection task, the attacker artefacts are the literal values in its goal that are not
@@ -258,3 +267,13 @@ Fixed in `src/judge_attacks.py`, committed together with this note and the Stage
   `stage2_dev` / `stage2_test`), so the judge cap and resuming work as before.
 - **H14's comparison** (the original D1 note on the same test runs) uses the existing Day 3 Gemini L2 judgements
   (repeat 0) of those runs. No new calls.
+
+## Deviation 6: Stage 3 also judges the Stage 2 sets (2026-11-11, before any Stage 3 call)
+
+The Stage 2 result (Gate 4 broken by a fake evaluator system message) raises the question of whether that text also
+fools a strong judge from another family. Stage 3 therefore also runs gpt-oss-120b at L2 on:
+- the Stage 2 held-out test transcripts with the best 3 candidates (270 calls);
+- the compromised and seen-and-resisted runs of `scaleup_tuned_v1` (280 calls).
+
+Cost ≈ $0.3. **These results are exploratory and descriptive.** They are not part of any pre-registered test.
+The text was tuned against Gemini, so these are transfer results.
