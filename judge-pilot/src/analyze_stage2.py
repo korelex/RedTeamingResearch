@@ -16,6 +16,7 @@ import sys
 
 from src.analyze_day2 import ALPHA, LLM_JUDGES, NAMES, PF, cluster, fmt, mcnemar_one_sided, rate, verdict_table, wrong
 from src.dual_attacks import TUNED_ATTACKS
+from src.freeze import FROZEN_ROOT
 from src.judge_attacks import (
     STAGE2_DIR, TARGET_JUDGE, TRANSFER_JUDGE, LEVEL, _jsonl, candidates, load_split, ranking, source_runs,
 )
@@ -142,10 +143,8 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="Pre-registered scale-up Stage 2 analysis.")
     ap.add_argument("--out", default="SCALEUP_STAGE2_RESULTS.md")
     args = ap.parse_args(argv)
-    try:
-        real = [r for r in eligible_runs(REAL_DATASET) if r["model_id"] in PRIMARY_AGENTS]
-    except (FileNotFoundError, KeyError):
-        real = []
+    frozen = (FROZEN_ROOT / REAL_DATASET).exists()
+    real = [r for r in eligible_runs(REAL_DATASET) if r["model_id"] in PRIMARY_AGENTS] if frozen else []
     V = verdict_table([j for j in load_judgements() if j.get("repeat") == 0])
     with open(args.out, "w", encoding="utf-8") as f:
         f.write(build_report(V, real))
