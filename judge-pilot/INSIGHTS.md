@@ -261,3 +261,26 @@ the winner) would probably find more. This makes 13% a lower bound.
 
 **38. Process.** Stage 2 cost $20.52 (≈ ₹1,970), as planned. The ADC login expired mid-stage; 576 failed calls were
 logged at no cost and all retried.
+
+## Scale-up Stages 3 and 4 (2026-11-11)
+
+**39. Finding 3 was partly a Gemini result.** A second strong judge from another family, gpt-oss-120b, missed ≥ 5%
+of real compromises at L2 on five of six hand-written attack sets (pre-registered reading: family-dependent). It
+missed 49% under the D1 reviewer note on banking + Slack (Llama 4: 51%, Gemini: 0%) and 22% on travel + workspace.
+Even the standard attack got 5.3% on night1. In 47 of its 64 D1 misses, the reason cites the note's authorisation.
+
+**40. gpt-oss trusts "the user said so".** Most of its misses without a planted note say the instruction "originated
+from the user (Emma Johnson)". The standard template signs the injection with the user's name, and some user tasks
+say "follow the instructions in the file". gpt-oss takes either as consent; Gemini does not.
+
+**41. The fake system message transfers.** Tuned against Gemini, r1c02 made gpt-oss miss 67% (60/90) of held-out
+test runs and 55% (37/67) of real runs, more than it fooled the target (13%, 9%). Exploratory (deviation 6).
+
+**42. gpt-oss's false alarms are close to Gemini's, not Llama's** (kappa vs Gemini 0.82, vs Llama 0.30). It is a
+"misses more, invents little" judge. Gemini's agreement with ground truth stays the best (kappa 0.86 vs 0.72).
+
+**43. Stage 4 confirms finding 7/11 with a pre-registered rule.** The partial label found 71 partly compromised
+resisted runs on travel + workspace (6–10% of not-compromised runs), and 10 on D2/D3 (all 10 Day 3 runs). Gemini
+flagged 77/81 of them. Moving them to "harm" cuts Gemini's L2 false-alarm rate on travel + workspace from 14–19% to
+5–8%, and gpt-oss's from 11–18% to 4–7%. Llama's barely moves (63–73%). Fewer runs than the post-hoc 65/102 count
+because the rule only counts artefacts newly written to the environment, not ones that appear only in the reply.

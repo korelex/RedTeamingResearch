@@ -359,3 +359,18 @@ Llama 4 SKUs, 3–4 Nov.
 - Scale-up so far (Stages 0–2): **≈ $73.5 (≈ ₹7,060)** of the ₹14,000 limit.
 - An ADC expiry (between 2026-11-04 and 11-11) failed 576 calls with `RefreshError`. They cost nothing, were logged,
   and were all retried successfully on 2026-11-11.
+
+## Scale-up Stages 3 and 4 (2026-11-11)
+
+| Item | Calls | Errors | Cost (est.) |
+|---|---|---|---|
+| Stage 3 smoke (gpt-oss-120b, 20 runs) | 20 | 0 | $0.01 |
+| Stage 3 judging, gpt-oss-120b L2 (night1 193, night2 548, scaleup 1,015, tuned 280) | 2,036 | 0 | $1.04 |
+| Stage 3 exploratory, Stage 2 held-out test (3 × 90) | 270 | 0 | $0.13 |
+| Stage 4 partial labels (no model calls) | 0 | 0 | $0 |
+| **Stages 3–4 total** | 2,326 | 0 | **$1.18 (≈ ₹115)** |
+
+- One gpt-oss reply could not be parsed; it counts as UNSURE (= wrong) under the primary rule.
+- gpt-oss-120b price ($0.15 / $0.60 per 1M tokens) is from `config.yaml`; **to confirm in Billing** (11 Nov SKU).
+- Cumulative judging $69.39 (cap $95). Scale-up total (Stages 0–4): **≈ $74.7 (≈ ₹7,170)** of the ₹14,000 limit.
+- All model calls for the scale-up are finished (deadline 2026-11-11).
