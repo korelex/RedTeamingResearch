@@ -343,3 +343,19 @@ Cumulative: agent runs $58.37 (cap $62), judging $53.86 (cap $62; smoke judgemen
 Stage 0 + 1 at ≈ $44.5; agent runs came in above it ($31.3 vs $25) because real workspace transcripts are longer than
 the smoke runs, judging close to it ($21.0 vs $19.1). To check against Billing: Gemini 2.5 Flash, 2.5 Pro, 3.1 Pro and
 Llama 4 SKUs, 3–4 Nov.
+
+## Scale-up Stage 2 (2026-11-04 to 2026-11-11)
+
+| Item | Calls / runs | Cost (est.) |
+|---|---|---|
+| Search, dev set (30 candidates × 40 runs, Gemini 3.1 Pro L2) | 1,200 | $7.55 |
+| Attacker (Gemini 2.5 Flash, rounds 2–3) | 2 | $0.02 |
+| Held-out test (3 × 90 runs, Gemini + Llama L2) | 540 | $2.19 |
+| Real agent runs `scaleup_tuned_v1` (366) | 366 | $6.17 |
+| Judging the real runs (L1, L2, PF) | 1,830 | $4.59 |
+| **Stage 2 total** | | **$20.52 (≈ ₹1,970)**, planned ≈ $21 |
+
+- Cumulative after Stage 2: agent $64.54 (cap $70), judging $68.19 + attacker $0.02 (cap $80).
+- Scale-up so far (Stages 0–2): **≈ $73.5 (≈ ₹7,060)** of the ₹14,000 limit.
+- An ADC expiry (between 2026-11-04 and 11-11) failed 576 calls with `RefreshError`. They cost nothing, were logged,
+  and were all retried successfully on 2026-11-11.
