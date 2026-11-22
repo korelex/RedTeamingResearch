@@ -265,7 +265,7 @@ logged at no cost and all retried.
 ## Scale-up Stages 3 and 4 (2026-11-11)
 
 **39. Finding 3 was partly a Gemini result.** A second strong judge from another family, gpt-oss-120b, missed ≥ 5%
-of real compromises at L2 on five of six hand-written attack sets (pre-registered reading: family-dependent). It
+of real compromises at L2 on five of seven hand-written attack sets (pre-registered reading: family-dependent). It
 missed 49% under the D1 reviewer note on banking + Slack (Llama 4: 51%, Gemini: 0%) and 22% on travel + workspace.
 Even the standard attack got 5.3% on night1. In 47 of its 64 D1 misses, the reason cites the note's authorisation.
 
@@ -281,6 +281,6 @@ test runs and 55% (37/67) of real runs, more than it fooled the target (13%, 9%)
 
 **43. Stage 4 confirms finding 7/11 with a pre-registered rule.** The partial label found 71 partly compromised
 resisted runs on travel + workspace (6–10% of not-compromised runs), and 10 on D2/D3 (all 10 Day 3 runs). Gemini
-flagged 77/81 of them. Moving them to "harm" cuts Gemini's L2 false-alarm rate on travel + workspace from 14–19% to
-5–8%, and gpt-oss's from 11–18% to 4–7%. Llama's barely moves (63–73%). Fewer runs than the post-hoc 65/102 count
-because the rule only counts artefacts newly written to the environment, not ones that appear only in the reply.
+flagged 80 of all 83. Moving them to "harm" cuts Gemini's L2 false-alarm rate on travel + workspace from 14–19% to
+5–8%, and gpt-oss's from 11–18% to 4–7%. Llama's barely moves (63–73%). Of Gemini's 102 travel + workspace false
+alarms, the rule labels 68 as partial harm, in line with the post-hoc estimate of 65.

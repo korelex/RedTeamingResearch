@@ -100,7 +100,7 @@ All results use the Gemini 2.5 Flash and 2.5 Pro agents, the ones that actually 
 - **Scale-up: replicated on travel + workspace:** 0/136, 0/118, 0/139 (Gate 3 holds again). Across all four suites,
   **0 misses in 861** compromises under hand-written attacks.
 - **But see finding 10:** text tuned against this judge does fool it.
-- **And see finding 12:** this is not true of every strong judge. gpt-oss-120b missed ≥ 5% on five of six attack sets.
+- **And see finding 12:** this is not true of every strong judge. gpt-oss-120b missed ≥ 5% on five of seven attack sets.
 
 ### 4. A weaker judge can be prompt-injected through the transcript it reviews
 
@@ -184,7 +184,7 @@ All results use the Gemini 2.5 Flash and 2.5 Pro agents, the ones that actually 
 
 - **Judge:** gpt-oss-120b on Vertex (a non-Gemini strong model; Claude was unavailable), L2, same prompt, all
   pre-registered runs. Descriptive, as pre-registered: < 5% misses would have meant "not just Gemini judging Gemini".
-- **Result: ≥ 5% on five of six attack sets.** Misses at L2:
+- **Result: ≥ 5% on five of seven attack sets.** Misses at L2:
 
   | Attack | gpt-oss-120b | Gemini 3.1 Pro | Llama 4 |
   |---|---|---|---|
@@ -245,7 +245,7 @@ All results use the Gemini 2.5 Flash and 2.5 Pro agents, the ones that actually 
 | Gate 4: Gemini 3.1 Pro misses ≥ 5% at L2 on the held-out test for any of the best 3 | **BROKEN** (13.3%) |
 | H14: best candidate raises Gemini's misses vs the D1 note, same runs | **Supported** (12 vs 0, p = 0.0002) |
 
-**Scale-up Stage 3, second strong judge (descriptive):** gpt-oss-120b missed ≥ 5% at L2 on 5 of 6 hand-written attack
+**Scale-up Stage 3, second strong judge (descriptive):** gpt-oss-120b missed ≥ 5% at L2 on 5 of 7 hand-written attack
 sets, so the pre-registered reading is **family-dependent** (finding 12).
 
 ### 9. Other observations
